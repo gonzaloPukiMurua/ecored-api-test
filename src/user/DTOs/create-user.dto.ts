@@ -55,11 +55,11 @@ export class CreateUserDto {
   @Validate(IsMatchingPasswordsConstraint)
   confirm_password!: string;
 
-  @ApiPropertyOptional({ example: 'Córdoba Capital, Barrio Centro' })
+  @ApiPropertyOptional({ example: '1990-05-23', description: 'Fecha de nacimiento del usuario.' })
   @IsOptional()
   @IsString()
-  @MaxLength(150)
-  zone_text?: string;
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'La fecha debe tener formato YYYY-MM-DD' })
+  birthday?: string;
 
   /** 👇 Nuevo campo anidado */
   @ApiPropertyOptional({

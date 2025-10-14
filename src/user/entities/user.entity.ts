@@ -42,8 +42,8 @@ export class User {
   @Column()
   password!: string;
 
-  @Column({ nullable: true })
-  zone_text?: string;
+  @Column({ type: 'date', nullable: true })
+  birthday?: Date;
 
   @CreateDateColumn()
   created_at!: Date;
