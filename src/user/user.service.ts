@@ -3,10 +3,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, HttpException, HttpStatus } from '@nestjs/common';
 import { User } from './entities/user.entity';
 import { UserRepository } from './user.repository';
 import { CreateUserDto } from './DTOs/create-user.dto';
+import { Address } from 'src/address/entities/address.entity';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -37,5 +38,18 @@ export class UserService {
             throw new NotFoundException(`User with id ${user_id} not found.`)
         }
         return user;
+    }
+
+    async addAddressToUser(userId: string, address: Address): Promise<void> {
+        const user = await this.userRepository.findOne(
+            userId,
+            {
+                relations: ['addresses']
+            },
+        );
+        if (!user) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+
+        user.addresses = [...(user.addresses || []), address];
+        await this.userRepository.save(user);
     }
 }

@@ -8,11 +8,14 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  JoinTable,
+  ManyToMany
 } from 'typeorm';
 import { Product } from '../../product/entities/product.entity';
 import { Request } from '../../request/entities/request.entity';
 import { Report } from '../../report/entities/report.entity';
 import { EventAnalytics } from '../../event-analytics/entities/event-analytics.entity';
+import { Address } from 'src/address/entities/address.entity';
 
 export enum UserRole {
   USER = 'user',
@@ -49,6 +52,17 @@ export class User {
   updated_at!: Date;
 
   // Relations
+
+  @ManyToMany(() => Address, (address) => address.users, {
+      cascade: true,
+  })
+  @JoinTable({
+    name: 'user_address',
+    joinColumn: { name: 'user_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'address_id', referencedColumnName: 'id' },
+    })
+  addresses!: Address[];
+  
   @OneToMany(() => Product, (product) => product.owner)
   products!: Product[] ;
 

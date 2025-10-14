@@ -9,12 +9,14 @@ import { UserService } from 'src/user/user.service';
 import { GenerateTokensProvider } from './generate-token.service';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from 'src/user/DTOs/create-user.dto';
+import { AddressService } from 'src/address/address.service';
 
 @Injectable()
 export class AuthService {
     constructor(
         private readonly userService: UserService,
-        private readonly generateTokensProvider: GenerateTokensProvider
+        private readonly generateTokensProvider: GenerateTokensProvider,
+        private readonly addressService: AddressService
     ){}
 
     async login(credentials: LoginUserDto){
@@ -48,8 +50,14 @@ export class AuthService {
                 HttpStatus.CONFLICT
             );
         }
+
         const newUser = await this.userService.createUserWithHashedPassword(credentials);
         
+        if (credentials.address) {
+            const addressEntity = await this.addressService.createAddress(credentials.address);
+            await this.userService.addAddressToUser(newUser.user_id, addressEntity);
+        }
+
         return {
             user_id: newUser.user_id,
             email: newUser.email,

@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsEmail,
   IsNotEmpty,
@@ -8,112 +8,69 @@ import {
   Matches,
   MaxLength,
   MinLength,
-  Validate, // Importar Validate para usar el custom validator
+  Validate,
   ValidationArguments,
   ValidatorConstraint,
   ValidatorConstraintInterface,
-  IsOptional, // Para campos opcionales
+  IsOptional,
+  ValidateNested,
 } from 'class-validator';
-
-// --------------------------------------------------------------------------
-// 1. Custom Validator para comparar contraseñas
-// --------------------------------------------------------------------------
+import { Type } from 'class-transformer';
+import { CreateAddressDto } from 'src/address/DTOs/create-adress.dto';
 
 @ValidatorConstraint({ name: 'IsMatchingPasswords', async: false })
 export class IsMatchingPasswordsConstraint implements ValidatorConstraintInterface {
   validate(passwordConfirmation: any, args: ValidationArguments) {
-    // args.object es el objeto CreateUserDto completo
-    // args.property es 'confirm_password'
-    // Se compara el valor de 'confirm_password' con el valor de 'password'
     const password = (args.object as CreateUserDto).password;
     return passwordConfirmation === password;
   }
-
-  defaultMessage(args: ValidationArguments) {
+  defaultMessage() {
     return 'La confirmación de la contraseña no coincide con la contraseña.';
   }
 }
 
-// --------------------------------------------------------------------------
-// 2. DTO principal
-// --------------------------------------------------------------------------
-
 export class CreateUserDto {
-  /**
-   * El nombre del usuario.
-   * @example "Juan Pérez"
-   */
-  @ApiProperty({ example: 'Juan Pérez', description: 'Nombre completo o alias del usuario.' })
-  @MinLength(3, { message: 'El nombre debe tener al menos 3 caracteres.' })
-  @MaxLength(80, { message: 'El nombre no puede exceder los 80 caracteres.' })
+  @ApiProperty({ example: 'Juan Pérez' })
+  @MinLength(3)
+  @MaxLength(80)
   @IsNotEmpty()
   @IsString()
   name!: string;
 
-  /**
-   * El correo electrónico del usuario.
-   * @example "juan.perez@email.com"
-   */
-  @ApiProperty({ example: 'juan.perez@email.com', description: 'Dirección de correo única para el registro.' })
-  @IsNotEmpty({ message: 'El correo electrónico es obligatorio.' })
-  @IsEmail({}, { message: 'Debe ser un formato de correo electrónico válido.' })
+  @ApiProperty({ example: 'juan.perez@email.com' })
+  @IsNotEmpty()
+  @IsEmail()
   email!: string;
 
-  /**
-   * El nombre de usuario (username).
-   * @example "juanperez123"
-   */
-  @ApiProperty({ example: 'juanperez123', description: 'Nombre de usuario único para el login.' })
-  @IsNotEmpty({ message: 'El nombre de usuario es obligatorio.' })
-  @IsString()
-  @MinLength(4, { message: 'El nombre de usuario debe tener al menos 4 caracteres.' })
-  @MaxLength(20, { message: 'El nombre de usuario no puede exceder los 20 caracteres.' })
-  @Matches(/^[a-zA-Z0-9_]+$/, {
-    message: 'El nombre de usuario solo puede contener letras, números y guiones bajos (_).',
-  })
-  username!: string;
-
-  /**
-   * La contraseña del usuario.
-   * @example "Password1@"
-   */
-  @ApiProperty({ example: 'Password1@', description: 'Contraseña para la cuenta.' })
+  @ApiProperty({ example: 'Password1@' })
   @IsNotEmpty()
   @IsString()
-  @Length(8, 15, {
-    message: 'La contraseña debe tener entre 8 y 15 caracteres.',
-  })
-  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/, {
-    message:
-      'La contraseña debe incluir al menos una letra minúscula, una letra mayúscula, un número y un carácter especial (!@#$%^&*).',
-  })
+  @Length(8, 15)
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/)
   password!: string;
 
-  /**
-   * La confirmación de la contraseña.
-   * Debe coincidir con el campo 'password'.
-   * @example "Password1@"
-   */
-  @ApiProperty({ example: 'Password1@', description: 'Repetir la contraseña para confirmación.' })
-  @IsNotEmpty({ message: 'La confirmación de la contraseña es obligatoria.' })
+  @ApiProperty({ example: 'Password1@' })
+  @IsNotEmpty()
   @IsString()
-  @Validate(IsMatchingPasswordsConstraint) // 👇 APLICAMOS EL VALIDADOR PERSONALIZADO
+  @Validate(IsMatchingPasswordsConstraint)
   confirm_password!: string;
 
-  /**
-   * Texto que describe la zona o ubicación del usuario. (Opcional)
-   * @example "Córdoba Capital, Barrio Centro"
-   */
-  @ApiProperty({ example: 'Córdoba Capital, Barrio Centro', required: false, description: 'Texto que indica la zona o ubicación del usuario.' })
-  @IsOptional() // 👇 Marcar como opcional
+  @ApiPropertyOptional({ example: 'Córdoba Capital, Barrio Centro' })
+  @IsOptional()
   @IsString()
-  @MaxLength(150, { message: 'La zona no puede exceder los 150 caracteres.' })
+  @MaxLength(150)
   zone_text?: string;
 
-  /**
-   * Constructor para asignar valores parciales al DTO.
-   * @param partial Objeto parcial de tipo CreateUserDto.
-   */
+  /** 👇 Nuevo campo anidado */
+  @ApiPropertyOptional({
+    type: () => CreateAddressDto,
+    description: 'Dirección principal del usuario (opcional).',
+  })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CreateAddressDto)
+  address?: CreateAddressDto;
+
   constructor(partial: Partial<CreateUserDto>) {
     Object.assign(this, partial);
   }

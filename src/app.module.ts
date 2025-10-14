@@ -19,6 +19,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthenticationGuard } from './auth/guards/authentication.guard';
+import { AddressModule } from './address/address.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -64,7 +65,7 @@ import { AuthenticationGuard } from './auth/guards/authentication.guard';
     RequestModule, 
     DeliveryModule, 
     ReportModule, 
-    EventAnalyticsModule
+    EventAnalyticsModule, AddressModule
   ],
   controllers: [AppController],
   providers: [
