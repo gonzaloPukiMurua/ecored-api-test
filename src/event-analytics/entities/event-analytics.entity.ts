@@ -8,7 +8,7 @@ import {
   ManyToOne,
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
-import { Product } from '../../product/entities/product.entity';
+import { Product } from '../../listing/entities/listing.entity';
 import { Request } from '../../request/entities/request.entity';
 
 export enum EventType {

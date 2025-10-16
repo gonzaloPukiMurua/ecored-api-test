@@ -12,7 +12,7 @@ import {
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { Category } from '../../category/entities/category.entity';
-import { ProductPhoto } from '../../product-photo/entities/product-photo.entity';
+import { ListingPhoto } from '../../media/entities/listing-photo.entity';
 import { Request } from '../../request/entities/request.entity';
 
 export enum ItemCondition {
@@ -22,19 +22,19 @@ export enum ItemCondition {
   PARTS = 'repuestos',
 }
 
-export enum ProductStatus {
+export enum ListingtStatus {
   DRAFT = 'draft',
   PUBLISHED = 'published',
   BLOCKED = 'blocked',
   DELIVERED = 'delivered',
 }
 
-@Entity('products')
-export class Product {
+@Entity('Listings')
+export class Listing {
   @PrimaryGeneratedColumn('uuid')
-  product_id!: string;
+  Listing_id!: string;
 
-  @ManyToOne(() => User, (user) => user.products, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, (user) => user.listings, { onDelete: 'CASCADE' })
   owner!: User;
 
   @Column()
@@ -43,7 +43,7 @@ export class Product {
   @Column({ type: 'text' })
   description!: string;
 
-  @ManyToOne(() => Category, (cat) => cat.products, { nullable: false })
+  @ManyToOne(() => Category, (category) => category.listings, { nullable: false })
   category!: Category;
 
   @ManyToOne(() => Category, { nullable: true })
@@ -52,8 +52,8 @@ export class Product {
   @Column({ type: 'enum', enum: ItemCondition })
   item_condition!: ItemCondition;
 
-  @Column({ type: 'enum', enum: ProductStatus, default: ProductStatus.DRAFT })
-  status!: ProductStatus;
+  @Column({ type: 'enum', enum: ListingtStatus, default: ListingtStatus.DRAFT })
+  status!: ListingtStatus;
 
   @Column({ type: 'float', nullable: true })
   lat?: number;
@@ -71,8 +71,8 @@ export class Product {
   updated_at!: Date;
 
   // Relations
-  @OneToMany(() => ProductPhoto, (photo) => photo.product, { cascade: true })
-  photos?: ProductPhoto[];
+  @OneToMany(() => ListingPhoto, (photo) => photo.listing, { cascade: true })
+  photos?: ListingPhoto[];
 
   @OneToMany(() => Request, (request) => request.product)
   requests!: Request[];

@@ -11,7 +11,7 @@ import {
   JoinTable,
   ManyToMany
 } from 'typeorm';
-import { Product } from '../../product/entities/product.entity';
+import { Listing } from '../../listing/entities/listing.entity';
 import { Request } from '../../request/entities/request.entity';
 import { Report } from '../../report/entities/report.entity';
 import { EventAnalytics } from '../../event-analytics/entities/event-analytics.entity';
@@ -63,8 +63,8 @@ export class User {
     })
   addresses!: Address[];
   
-  @OneToMany(() => Product, (product) => product.owner)
-  products!: Product[] ;
+  @OneToMany(() => Listing, (listing) => listing.owner)
+  listings!: Listing[] ;
 
   @OneToMany(() => Request, (request) => request.requester)
   requests!: Request[];

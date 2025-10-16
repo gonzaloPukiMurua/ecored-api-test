@@ -1,4 +1,7 @@
 /* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -6,8 +9,8 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { ProductModule } from './product/product.module';
-import { ProductPhotosModule } from './product-photo/product-photo.module';
+import { ListingModule } from './listing/listing.module';
+import { MediaModule } from './media/media.module';
 import { CategoryModule } from './category/category.module';
 import { RequestModule } from './request/request.module';
 import { DeliveryModule } from './delivery/delivery.module';
@@ -17,9 +20,11 @@ import { JwtModule } from '@nestjs/jwt';
 import { EventAnalyticsModule } from './event-analytics/event-analytics.module';
 import * as fs from 'fs';
 import * as path from 'path';
+import { join } from 'path';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthenticationGuard } from './auth/guards/authentication.guard';
 import { AddressModule } from './address/address.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -55,12 +60,16 @@ import { AddressModule } from './address/address.module';
           }
         },
       }),
+      ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads',
+    }),
     AuthModule,
     ConfigModule.forFeature(jwtConfig),
     JwtModule.registerAsync(jwtConfig.asProvider()), 
     UserModule, 
-    ProductModule, 
-    ProductPhotosModule, 
+    ListingModule, 
+    MediaModule, 
     CategoryModule, 
     RequestModule, 
     DeliveryModule, 

@@ -7,17 +7,17 @@ import {
   ManyToOne,
   CreateDateColumn,
 } from 'typeorm';
-import { Product } from '../../product/entities/product.entity';
+import { Listing } from '../../listing/entities/listing.entity';
 
-@Entity('product_photo')
-export class ProductPhoto {
+@Entity('listing_photo')
+export class ListingPhoto {
   @PrimaryGeneratedColumn('uuid')
   photo_id!: string;
 
-  @ManyToOne(() => Product, (product) => product.photos, {
+  @ManyToOne(() => Listing, (listing) => listing.photos, {
     onDelete: 'CASCADE',
   })
-  product!: Product;
+  listing!: Listing;
 
   @Column()
   url!: string;

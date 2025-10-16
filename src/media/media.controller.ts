@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
 import { Controller } from '@nestjs/common';
 
-@Controller('product-photo')
-export class ProductPhotoController {}
+@Controller('media')
+export class MediaController {}

@@ -10,7 +10,7 @@ import {
   UpdateDateColumn,
   OneToOne,
 } from 'typeorm';
-import { Product } from '../../product/entities/product.entity';
+import { Product } from '../../listing/entities/listing.entity';
 import { User } from '../../user/entities/user.entity';
 import { Delivery } from '../../delivery/entities/delivery.entity';
 

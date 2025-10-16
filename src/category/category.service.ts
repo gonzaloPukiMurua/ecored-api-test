@@ -1,4 +1,44 @@
-import { Injectable } from '@nestjs/common';
-
+/* eslint-disable prettier/prettier */
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { CategoryRepository } from './category.repository';
+import { CreateCategoryDto } from './DTOs/create-category.dto';
+import { Category } from './entities/category.entity';
 @Injectable()
-export class CategoryService {}
+export class CategoryService {
+    constructor(private readonly categoryRepository: CategoryRepository){}
+
+    async createCategory(createCategoryDto: CreateCategoryDto): Promise<Category>{
+        const { name, parent_id} = createCategoryDto;
+        let parent: Category | null = null;
+        if(parent_id){
+            parent = await this.categoryRepository.findById(parent_id);
+            if(!parent){
+                throw new NotFoundException(`No se encontró la categoría padre con ID ${parent_id}`);
+            }
+        }
+
+        const category = this.categoryRepository.create({
+            name, 
+            parent,
+        });
+
+        return await this.categoryRepository.save(category);
+    }
+
+    async getCategoryById(id: string): Promise<Category | null | undefined>{
+        const category = await this.categoryRepository.findById(id);
+        if(!category){
+            throw new NotFoundException(`Categoría con ID ${id} no encontrada`);
+        }
+        return category;
+    }
+
+    async getAllCategories(
+        search: string,
+        page = 1,
+        limit = 10,
+        order: 'ASC' | 'DESC' = 'ASC',
+    ): Promise<{data: Category[], total: number, page: number, limit: number}>{
+        return await this.categoryRepository.findAll(search, page, limit, order);
+    }
+}

@@ -8,7 +8,7 @@ import {
   OneToMany,
   CreateDateColumn,
 } from 'typeorm';
-import { Product } from '../../product/entities/product.entity';
+import { Listing } from '../../listing/entities/listing.entity';
 
 @Entity('categories')
 export class Category {
@@ -19,13 +19,13 @@ export class Category {
   name!: string;
 
   @ManyToOne(() => Category, (cat) => cat.children, { nullable: true })
-  parent?: Category;
+  parent?: Category | null;
 
   @OneToMany(() => Category, (cat) => cat.parent)
   children?: Category[];
 
-  @OneToMany(() => Product, (product) => product.category)
-  products!: Product[];
+  @OneToMany(() => Listing, (listing) => listing.category)
+  listings!: Listing[];
 
   @CreateDateColumn()
   created_at!: Date;
