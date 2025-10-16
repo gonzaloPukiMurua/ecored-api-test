@@ -1,9 +1,10 @@
 /* eslint-disable prettier/prettier */
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateListingDto } from './DTOs/create-listing.dto';
 import { ListingRepository } from './listing.repository';
 import { MediaService } from 'src/media/media.service';
 import { ListingPhoto } from 'src/media/entities/listing-photo.entity';
+import { Listing } from './entities/listing.entity';
 
 @Injectable()
 export class ListingService {
@@ -23,10 +24,28 @@ export class ListingService {
             photo.position = i;
             photos.push(photo);
         }
-        
+
         return await this.listingRepository.createListing({
             ...createListingDto,
             photos
         });
+    }
+
+    async getListingById(id: string): Promise<Listing>{
+        const listing = await this.listingRepository.getListingById(id);
+        if (!listing) throw new NotFoundException(`Listing con ID ${id} no encontrado`);
+        return listing;
+    }
+
+    async getListings(
+        search: string,
+        category?: string,
+        page = 1,
+        limit = 10,
+        order: 'ASC' | 'DESC' = 'ASC',
+    ): Promise<{data: Listing[], total: number, page: number, limit: number}>{
+
+        const { data, total, page: p, limit: l } = await this.listingRepository.findAll(search, category, page, limit, order);
+        return { data: data || [], total, page: p, limit: l };
     }
 }

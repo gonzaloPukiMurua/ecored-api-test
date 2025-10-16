@@ -32,7 +32,7 @@ export enum ListingtStatus {
 @Entity('Listings')
 export class Listing {
   @PrimaryGeneratedColumn('uuid')
-  Listing_id!: string;
+  listing_id!: string;
 
   @ManyToOne(() => User, (user) => user.listings, { onDelete: 'CASCADE' })
   owner!: User;
