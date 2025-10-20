@@ -5,7 +5,7 @@ import * as path from 'path';
 
 // Carga explícita y forzada del archivo que tiene tus credenciales de BD.
 // Usa '.env.development' si ese es el que tiene la contraseña real.
-const envFile = process.env.NODE_ENV === 'production' ? '.env' : '.env.development';
+const envFile = process.env.NODE_ENV === 'production' ? '.env' : '.env.example';
 
 dotenv.config({ path: path.resolve(process.cwd(), envFile) });
 // También carga el .env general si lo tienes.

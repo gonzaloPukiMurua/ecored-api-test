@@ -8,7 +8,7 @@ import {
   ManyToOne,
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
-import { Product } from '../../listing/entities/listing.entity';
+import { Listing } from '../../listing/entities/listing.entity';
 import { Request } from '../../request/entities/request.entity';
 
 export enum EventType {
@@ -35,8 +35,8 @@ export class EventAnalytics {
   @ManyToOne(() => User, (user) => user.events, { nullable: true })
   user?: User;
 
-  @ManyToOne(() => Product, { nullable: true })
-  listing?: Product;
+  @ManyToOne(() => Listing, { nullable: true })
+  listing?: Listing;
 
   @ManyToOne(() => Request, { nullable: true })
   request?: Request;

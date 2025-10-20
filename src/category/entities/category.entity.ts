@@ -18,6 +18,9 @@ export class Category {
   @Column({ unique: true })
   name!: string;
 
+  @Column({ default: true })
+  active!: boolean;
+
   @ManyToOne(() => Category, (cat) => cat.children, { nullable: true })
   parent?: Category | null;
 

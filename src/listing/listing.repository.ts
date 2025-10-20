@@ -46,4 +46,9 @@ export class ListingRepository{
         limit
     };
   }
+
+  async save(listing: Listing): Promise<Listing> {
+    return await this.listingRepository.save(listing);
+  }
+
 }

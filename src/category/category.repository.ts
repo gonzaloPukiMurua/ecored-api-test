@@ -47,4 +47,21 @@ export class CategoryRepository{
             limit
         };
     }
+
+    // ✅ Actualizar categoría
+    async updateCategory(id: string, data: Partial<Category>): Promise<Category> {
+        await this.categoryRepository.update(id, data);
+        const updated = await this.findById(id);
+        if (!updated) throw new Error('No se encontró la categoría actualizada');
+        return updated;
+    }
+
+    // 🚫 Desactivar (borrado lógico)
+    async deactivateCategory(id: string): Promise<Category> {
+        const category = await this.findById(id);
+        if (!category) throw new Error('Categoría no encontrada');
+        category.active = false;
+        return await this.categoryRepository.save(category);
+    }
+
 }

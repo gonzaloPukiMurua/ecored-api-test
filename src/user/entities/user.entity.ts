@@ -58,7 +58,7 @@ export class User {
   })
   @JoinTable({
     name: 'user_address',
-    joinColumn: { name: 'user_id', referencedColumnName: 'id' },
+    joinColumn: { name: 'user_id', referencedColumnName: 'user_id' },
     inverseJoinColumn: { name: 'address_id', referencedColumnName: 'id' },
     })
   addresses!: Address[];

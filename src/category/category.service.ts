@@ -2,6 +2,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CategoryRepository } from './category.repository';
 import { CreateCategoryDto } from './DTOs/create-category.dto';
+import { UpdateCategoryDto } from './DTOs/update-category.dto';
 import { Category } from './entities/category.entity';
 @Injectable()
 export class CategoryService {
@@ -41,4 +42,19 @@ export class CategoryService {
     ): Promise<{data: Category[], total: number, page: number, limit: number}>{
         return await this.categoryRepository.findAll(search, page, limit, order);
     }
+
+    // ✅ Actualizar categoría
+    async updateCategory(id: string, updateDto: UpdateCategoryDto): Promise<Category> {
+        const category = await this.categoryRepository.findById(id);
+        if (!category) throw new NotFoundException(`Categoría con ID ${id} no encontrada`);
+        return await this.categoryRepository.updateCategory(id, updateDto);
+    }
+
+    // 🚫 Desactivar categoría
+    async deactivateCategory(id: string): Promise<Category> {
+        const category = await this.categoryRepository.findById(id);
+        if (!category) throw new NotFoundException(`Categoría con ID ${id} no encontrada`);
+        return await this.categoryRepository.deactivateCategory(id);
+    }
+
 }

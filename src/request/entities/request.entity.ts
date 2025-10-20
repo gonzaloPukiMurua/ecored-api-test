@@ -9,8 +9,9 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToOne,
+  JoinColumn
 } from 'typeorm';
-import { Product } from '../../listing/entities/listing.entity';
+import { Listing } from '../../listing/entities/listing.entity';
 import { User } from '../../user/entities/user.entity';
 import { Delivery } from '../../delivery/entities/delivery.entity';
 
@@ -26,10 +27,12 @@ export class Request {
   @PrimaryGeneratedColumn('uuid')
   request_id!: string;
 
-  @ManyToOne(() => Product, (product) => product.requests, { onDelete: 'CASCADE' })
-  product!: Product;
+  @ManyToOne(() => Listing, (listing) => listing.requests, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'listing_id', referencedColumnName: 'listing_id' })
+  listing!: Listing;
 
   @ManyToOne(() => User, (user) => user.requests, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'requester_id', referencedColumnName: 'user_id' })
   requester!: User;
 
   @Column({ type: 'enum', enum: RequestStatus, default: RequestStatus.PENDING })

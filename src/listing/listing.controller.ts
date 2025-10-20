@@ -8,10 +8,12 @@ import {
     Body, 
     Get, 
     Param, 
-    Query 
+    Query,
+    Put, 
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { CreateListingDto } from './DTOs/create-listing.dto';
+import { UpdateListingDto } from './DTOs/update-listing.dto';
 import { ListingService } from './listing.service';
 import { Listing } from './entities/listing.entity';
 import { 
@@ -76,4 +78,20 @@ export class ListingController {
     ): Promise<{ data: Listing[]; total: number; page: number; limit: number }> {
         return await this.listingService.getListings(search ?? '', category, Number(page), Number(limit), order);
   }
+
+  // ✅ PUT /api/listing/update
+  @Put('update')
+  @ApiOperation({ summary: 'Actualiza un listing existente' })
+  @ApiResponse({ status: 200, description: 'Listing actualizado', type: Listing })
+  async updateListing(@Body() updateDto: UpdateListingDto): Promise<Listing> {
+    return await this.listingService.updateListing(updateDto);
+  }
+
+  // ✅ PUT /api/listing/:id → borrado lógico
+  @Put(':id')
+  @ApiOperation({ summary: 'Borrado lógico de un listing por ID' })
+  async softDeleteListing(@Param('id') id: string) {
+    return await this.listingService.softDeleteListing(id);
+  }
+
 }

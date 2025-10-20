@@ -29,7 +29,7 @@ export enum ListingtStatus {
   DELIVERED = 'delivered',
 }
 
-@Entity('Listings')
+@Entity('listings')
 export class Listing {
   @PrimaryGeneratedColumn('uuid')
   listing_id!: string;
@@ -70,10 +70,13 @@ export class Listing {
   @UpdateDateColumn()
   updated_at!: Date;
 
+  @Column({ default: true })
+  active!: boolean;
+
   // Relations
   @OneToMany(() => ListingPhoto, (photo) => photo.listing, { cascade: true })
   photos?: ListingPhoto[];
 
-  @OneToMany(() => Request, (request) => request.product)
+  @OneToMany(() => Request, (request) => request.listing)
   requests!: Request[];
 }

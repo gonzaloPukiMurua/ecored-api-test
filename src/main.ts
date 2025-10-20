@@ -2,7 +2,12 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-
+import { Observable } from 'rxjs';
+import { Request } from 'express';
+import {
+  CallHandler,
+  ExecutionContext,
+ } from '@nestjs/common';
 async function bootstrap() {
   const port = process.env.PORT || 3000;
   const app = await NestFactory.create(AppModule);
@@ -31,8 +36,8 @@ async function bootstrap() {
   
   app.setGlobalPrefix('api');
   app.useGlobalInterceptors({
-  intercept(context, next) {
-      const req = context.switchToHttp().getRequest();
+  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+      const req = context.switchToHttp().getRequest<Request>();
       console.log(`📡 ${req.method} ${req.url}`);
       return next.handle();
     },

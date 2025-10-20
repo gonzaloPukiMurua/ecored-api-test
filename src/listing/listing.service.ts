@@ -1,6 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateListingDto } from './DTOs/create-listing.dto';
+import { UpdateListingDto } from './DTOs/update-listing.dto';
 import { ListingRepository } from './listing.repository';
 import { MediaService } from 'src/media/media.service';
 import { ListingPhoto } from 'src/media/entities/listing-photo.entity';
@@ -47,5 +48,25 @@ export class ListingService {
 
         const { data, total, page: p, limit: l } = await this.listingRepository.findAll(search, category, page, limit, order);
         return { data: data || [], total, page: p, limit: l };
+    }
+
+    // ✅ Actualizar un Listing
+    async updateListing(updateDto: UpdateListingDto): Promise<Listing> {
+        const listing = await this.listingRepository.getListingById(updateDto.listing_id);
+        if (!listing) throw new NotFoundException('Listing no encontrado');
+
+        Object.assign(listing, updateDto);
+        return await this.listingRepository.save(listing);
+    }
+
+    // ✅ Borrado lógico
+    async softDeleteListing(id: string): Promise<{ message: string }> {
+        const listing = await this.listingRepository.getListingById(id);
+        if (!listing) throw new NotFoundException('Listing no encontrado');
+
+        listing.active = false;
+        await this.listingRepository.save(listing);
+
+        return { message: `Listing ${id} marcado como inactivo` };
     }
 }

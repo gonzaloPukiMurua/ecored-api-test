@@ -5,10 +5,12 @@ import {
     Post, 
     Get, 
     Param,
-    Query
+    Query,
+    Put
 } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './DTOs/create-category.dto';
+import { UpdateCategoryDto } from './DTOs/update-category.dto';
 import { 
     ApiOperation, 
     ApiResponse, 
@@ -57,5 +59,21 @@ export class CategoryController {
     @Query('order') order: 'ASC' | 'DESC' = 'ASC',
   ): Promise<{ data: Category[]; total: number; page: number; limit: number }> {
     return await this.categoryService.getAllCategories(search ?? '', Number(page), Number(limit), order);
-  } 
+  }
+  
+  // ✅ PUT /api/category/:id/update
+    @Put(':id/update')
+    @ApiOperation({ summary: 'Actualiza una categoría existente' })
+    @ApiResponse({ status: 200, description: 'Categoría actualizada', type: Category })
+    async updateCategory(@Param('id') id: string, @Body() updateDto: UpdateCategoryDto): Promise<Category> {
+        return await this.categoryService.updateCategory(id, updateDto);
+    }
+
+    // 🚫 PUT /api/category/:id/deactivate
+    @Put(':id/deactivate')
+    @ApiOperation({ summary: 'Desactiva (borrado lógico) una categoría' })
+    @ApiResponse({ status: 200, description: 'Categoría desactivada', type: Category })
+    async deactivateCategory(@Param('id') id: string): Promise<Category> {
+        return await this.categoryService.deactivateCategory(id);
+    }
 }
