@@ -18,20 +18,25 @@ import {
     ApiQuery 
 } from '@nestjs/swagger';
 import { Category } from './entities/category.entity';
+import { Auth } from 'src/auth/decorators/auth.decorator';
+import { AuthType } from 'src/auth/enums/auth-type.enum';
 
 @ApiTags('Categories')
 @Controller('category')
 export class CategoryController {
     constructor(private readonly categoryService: CategoryService){}
 
+    @Auth(AuthType.None)
     @Post()
     @ApiOperation({ summary: 'Crea una nueva categoría o subcategoría'})
     @ApiResponse({ status: 201, description: 'Categoría creada correctamente', type: Category})
     async createCategory(@Body() createCategoryDto: CreateCategoryDto): Promise<Category>{
+      console.log("Estoy en category POST despues del Guard")
         return await this.categoryService.createCategory(createCategoryDto);
     }
 
     // 🔵 Obtener una categoría por ID
+  @Auth(AuthType.None)  
   @Get(':id')
   @ApiOperation({ summary: 'Obtiene una categoría según su ID' })
   @ApiResponse({ status: 200, description: 'Categoría encontrada', type: Category })
@@ -41,6 +46,7 @@ export class CategoryController {
   }
 
   // 🟣 Obtener todas las categorías (con filtros, búsqueda y paginación)
+  @Auth(AuthType.None)
   @Get()
   @ApiOperation({ summary: 'Obtiene una lista de categorías con filtros, orden y paginación' })
   @ApiQuery({ name: 'search', required: false, description: 'Filtra por nombre de categoría' })
@@ -58,6 +64,7 @@ export class CategoryController {
     @Query('limit') limit = 10,
     @Query('order') order: 'ASC' | 'DESC' = 'ASC',
   ): Promise<{ data: Category[]; total: number; page: number; limit: number }> {
+    console.log("Estoy en api/categories GET.")
     return await this.categoryService.getAllCategories(search ?? '', Number(page), Number(limit), order);
   }
   

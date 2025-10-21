@@ -27,6 +27,7 @@ export class AccessTokenGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const token = this.extractRequestFromHeader(request);
+    console.log("Este es el token: ", token);
     if (!token) {
       throw new UnauthorizedException('Token no proporcionado');
     }

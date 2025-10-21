@@ -6,28 +6,42 @@ import { ListingRepository } from './listing.repository';
 import { MediaService } from 'src/media/media.service';
 import { ListingPhoto } from 'src/media/entities/listing-photo.entity';
 import { Listing } from './entities/listing.entity';
+import { CategoryService } from 'src/category/category.service';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class ListingService {
     constructor(
         private readonly listingRepository: ListingRepository,
-        private readonly mediaService: MediaService
+        private readonly mediaService: MediaService,
+        private readonly categoryService: CategoryService,
+        private readonly userService: UserService,
     ){}
 
-    async createListing(createListingDto: CreateListingDto, files: Express.Multer.File[]){
-
+    async createListing(createListingDto: CreateListingDto, user_id: string, files: Express.Multer.File[]){
+        
         const photos: ListingPhoto[] = [];
-        for(let i = 0; i < files.length; i++){
-            const file = files[i];
-            const url = this.mediaService.uploadFile(file);
-            const photo = new ListingPhoto();
-            photo.url = url;
-            photo.position = i;
-            photos.push(photo);
-        }
+        if (files && files.length > 0) {
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const url = this.mediaService.uploadFile(file);
+                const photo = new ListingPhoto();
+                photo.url = url;
+                photo.position = i;
+                photos.push(photo);
+            }
+         }
+
+        const category = await this.categoryService.getCategoryById(createListingDto.category_id);
+        if (!category) throw new NotFoundException('Categoría no encontrada');
+
+        const user = await this.userService.findUserById(user_id);
+        if(!user) throw new NotFoundException('Usuario no encontrado.');
 
         return await this.listingRepository.createListing({
             ...createListingDto,
+            owner: user,
+            category,
             photos
         });
     }

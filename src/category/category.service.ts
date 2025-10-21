@@ -40,6 +40,7 @@ export class CategoryService {
         limit = 10,
         order: 'ASC' | 'DESC' = 'ASC',
     ): Promise<{data: Category[], total: number, page: number, limit: number}>{
+        console.log("Estoy en category.service. data: ", search)
         return await this.categoryRepository.findAll(search, page, limit, order);
     }
 

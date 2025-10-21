@@ -12,6 +12,7 @@ export class CategoryRepository{
     ){}
 
     create(data: Partial<Category>){
+        console.log("Estoy en create category")
         return this.categoryRepository.create(data)
     }
 
@@ -32,6 +33,7 @@ export class CategoryRepository{
         limit = 10,
         order: 'ASC' | 'DESC' = 'ASC',
     ): Promise<{data: Category[], total: number, page: number, limit: number}>{
+        console.log("Estoy en repo")
         const [data, total] = await this.categoryRepository.findAndCount({
             where: search ? { name: ILike(`%${search}%`)} : {},
             order: { created_at: order},

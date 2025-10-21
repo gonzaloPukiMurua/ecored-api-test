@@ -22,7 +22,7 @@ export enum ItemCondition {
   PARTS = 'repuestos',
 }
 
-export enum ListingtStatus {
+export enum ListingStatus {
   DRAFT = 'draft',
   PUBLISHED = 'published',
   BLOCKED = 'blocked',
@@ -52,14 +52,14 @@ export class Listing {
   @Column({ type: 'enum', enum: ItemCondition })
   item_condition!: ItemCondition;
 
-  @Column({ type: 'enum', enum: ListingtStatus, default: ListingtStatus.DRAFT })
-  status!: ListingtStatus;
+  @Column({ type: 'enum', enum: ListingStatus, default: ListingStatus.DRAFT })
+  status!: ListingStatus;
 
-  @Column({ type: 'float', nullable: true })
-  lat?: number;
+  @Column({ type: 'float', nullable: true, default: null })
+  lat?: number | null;
 
-  @Column({ type: 'float', nullable: true })
-  lng?: number;
+  @Column({ type: 'float', nullable: true, default: null })
+  lng?: number | null;
 
   @Column({ nullable: true })
   zone_text?: string;

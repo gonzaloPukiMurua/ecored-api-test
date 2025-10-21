@@ -17,7 +17,7 @@ export class RequestRepository{
     return this.requestRepository.save(request);
   }
 
-  async findById(id: string): Promise<Request | null> {
+  async findById(id: string): Promise<Request | null | undefined> {
     return this.requestRepository.findOne({
       where: { request_id: id },
       relations: ['listing', 'requester', 'delivery'],

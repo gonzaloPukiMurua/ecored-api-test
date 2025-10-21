@@ -9,7 +9,9 @@ import {
     Get, 
     Param, 
     Query,
-    Put, 
+    Put,
+    UseGuards,
+    Req,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { CreateListingDto } from './DTOs/create-listing.dto';
@@ -21,14 +23,21 @@ import {
     ApiBody,
     ApiOperation,
     ApiResponse,
-    ApiQuery
+    ApiQuery,
+    ApiBearerAuth
 } from '@nestjs/swagger';
+import { AccessTokenGuard } from 'src/auth/guards/access-token.guard';
+import type { Request } from 'express';
+import { REQUEST_USER_KEY } from 'src/auth/constants/auth.constants';
+import { JwtPayload } from 'src/auth/interfaces/jwt-payload.interface';
 
-
+ApiBearerAuth()
 @Controller('listing')
 export class ListingController {
-    constructor(private readonly listingService: ListingService){}
-    
+    constructor(
+        private readonly listingService: ListingService
+    ){}
+
     @Post()
     @UseInterceptors(FilesInterceptor('files', 5))
     @ApiConsumes('multipart/form-data')
@@ -48,16 +57,28 @@ export class ListingController {
             },
         },
     })
+    @UseGuards(AccessTokenGuard)
     async createListing(
+    @Req() request: Request,
     @UploadedFiles() files: Express.Multer.File[],
     @Body() createListingDto: CreateListingDto,
     ) {
-        return this.listingService.createListing(createListingDto, files);
+        const userPayload = request[REQUEST_USER_KEY] as JwtPayload;
+        try{  
+            if (!userPayload) {
+                return { message: 'Usuario no autenticado' };
+            }
+        }catch(error){
+            console.error(error);
+            return { message: 'Error interno del servidor' }
+        }
+        return this.listingService.createListing(createListingDto, userPayload.user_id, files);
     }
     @Get(':id')
     @ApiOperation({ summary: 'Obtiene un listing por su ID' })
     @ApiResponse({ status: 200, description: 'Listing encontrado', type: Listing })
     async getListingById(@Param('id') id: string): Promise<Listing> {
+        console.log("Estoy en listing Post.");
         return await this.listingService.getListingById(id);
     }
 

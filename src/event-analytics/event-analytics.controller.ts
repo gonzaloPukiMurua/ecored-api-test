@@ -10,7 +10,7 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 @Controller('event-analytics')
 export class EventAnalyticsController {
   constructor(private readonly eventService: EventAnalyticsService) {}
-
+  
   @Post()
   @ApiOperation({ summary: 'Crea un evento analítico' })
   @ApiResponse({ status: 201, description: 'Evento creado', type: EventAnalytics })

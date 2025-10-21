@@ -17,6 +17,10 @@ export class RequestService {
         private readonly userService: UserService, 
     ){}
 
+    async getRequestById(id: string): Promise<RequestEntity | null | undefined>{
+      return await this.requestRepository.findById(id);
+    }
+
     async createRequest(createDto: CreateRequestDto): Promise<RequestEntity> {
 
     const listing = await this.listinService.getListingById(createDto.listing_id);

@@ -74,7 +74,8 @@ import { ServeStaticModule } from '@nestjs/serve-static';
     RequestModule, 
     DeliveryModule, 
     ReportModule, 
-    EventAnalyticsModule, AddressModule
+    EventAnalyticsModule,
+    AddressModule
   ],
   controllers: [AppController],
   providers: [

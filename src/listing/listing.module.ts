@@ -5,13 +5,24 @@ import { ListingService } from './listing.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Listing } from './entities/listing.entity';
 import { MediaModule } from 'src/media/media.module';
+import { ListingRepository } from './listing.repository';
+import { CategoryModule } from 'src/category/category.module';
+import { UserModule } from 'src/user/user.module';
+import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule } from '@nestjs/config';
+import jwtConfig from 'src/config/jwt.config';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Listing]),
     MediaModule,
+    CategoryModule,
+    UserModule,
+    JwtModule,
+    ConfigModule.forFeature(jwtConfig),
   ],
   controllers: [ListingController],
-  providers: [ListingService],
+  providers: [ListingService, ListingRepository],
+  exports: [ListingService, ListingRepository]
 })
 export class ListingModule {}

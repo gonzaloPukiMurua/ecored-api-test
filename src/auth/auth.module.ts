@@ -13,6 +13,7 @@ import { ConfigModule } from '@nestjs/config';
 import jwtConfig from 'src/config/jwt.config';
 import { AccessTokenGuard } from './guards/access-token.guard';
 import { AuthenticationGuard } from './guards/authentication.guard';
+import { AddressModule } from 'src/address/address.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { AuthenticationGuard } from './guards/authentication.guard';
     TypeOrmModule.forFeature([User]),
     ConfigModule.forFeature(jwtConfig),
     JwtModule.registerAsync(jwtConfig.asProvider()),
+    AddressModule
   ],
   providers: [
     AuthService, 

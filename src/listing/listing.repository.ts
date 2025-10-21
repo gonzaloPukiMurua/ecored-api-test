@@ -5,11 +5,12 @@ import { Listing } from "./entities/listing.entity";
 import { Repository, ILike, FindOptionsWhere } from "typeorm";
 @Injectable()
 export class ListingRepository{
-    constructor(
+  constructor(
         @InjectRepository(Listing)
         private readonly listingRepository: Repository<Listing>
-    ){}
-    async createListing(listingData: Partial<Listing>): Promise<Listing> {
+  ){}
+  
+  async createListing(listingData: Partial<Listing>): Promise<Listing> {
     const listing = this.listingRepository.create(listingData);
     return await this.listingRepository.save(listing);
   }
