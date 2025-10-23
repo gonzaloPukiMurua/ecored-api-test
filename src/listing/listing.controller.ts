@@ -74,6 +74,7 @@ export class ListingController {
         }
         return this.listingService.createListing(createListingDto, userPayload.user_id, files);
     }
+    
     @Get(':id')
     @ApiOperation({ summary: 'Obtiene un listing por su ID' })
     @ApiResponse({ status: 200, description: 'Listing encontrado', type: Listing })

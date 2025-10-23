@@ -1,18 +1,17 @@
 /* eslint-disable prettier/prettier */
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Request } from "./entities/request.entity";
-import { Repository } from "typeorm";
-import { RequestStatus } from "./entities/request.entity";
+import { Repository, FindOptionsWhere } from "typeorm";
+import { Request, RequestStatus } from "./entities/request.entity";
 
 @Injectable()
-export class RequestRepository{
-    constructor( 
-        @InjectRepository(Request)
-        private readonly requestRepository: Repository<Request>
-    ){}
+export class RequestRepository {
+  constructor(
+    @InjectRepository(Request)
+    private readonly requestRepository: Repository<Request>
+  ) {}
 
-    async createRequest(data: Partial<Request>): Promise<Request> {
+  async createRequest(data: Partial<Request>): Promise<Request> {
     const request = this.requestRepository.create(data);
     return this.requestRepository.save(request);
   }
@@ -29,4 +28,38 @@ export class RequestRepository{
     return this.requestRepository.save(request);
   }
 
+  /**
+   * Devuelve todas las requests de un usuario, con paginado y orden configurable.
+   */
+  async findByUserId(
+    user_id: string,
+    page = 1,
+    limit = 10,
+    order: 'ASC' | 'DESC' = 'DESC',
+    status?: RequestStatus
+  ): Promise<{ data: Request[]; total: number; page: number; limit: number }> {
+    const where: FindOptionsWhere<Request> = {
+      requester: { user_id },
+    };
+
+    // Si se pasa un estado, filtramos también por status
+    if (status) {
+      where.status = status;
+    }
+
+    const [data, total] = await this.requestRepository.findAndCount({
+      where,
+      order: { created_at: order },
+      skip: (page - 1) * limit,
+      take: limit,
+      relations: ['listing', 'requester', 'delivery'],
+    });
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+    };
+  }
 }

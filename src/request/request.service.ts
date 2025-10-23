@@ -21,13 +21,23 @@ export class RequestService {
       return await this.requestRepository.findById(id);
     }
 
-    async createRequest(createDto: CreateRequestDto): Promise<RequestEntity> {
+    async getRequestsByUserId(
+      user_id: string,
+      page = 1,
+      limit = 10,
+      order: 'ASC' | 'DESC' = 'DESC',
+      status?: RequestStatus
+    ): Promise<{ data: RequestEntity[]; total: number; page: number; limit: number }> {
+      return this.requestRepository.findByUserId(user_id, page, limit, order, status);
+    }
+
+    async createRequest(createDto: CreateRequestDto, requester_id: string): Promise<RequestEntity> {
 
     const listing = await this.listinService.getListingById(createDto.listing_id);
     if (!listing) throw new NotFoundException(`Listing con ID ${createDto.listing_id} no encontrado`);
 
-    const requester = await this.userService.findUserById(createDto.requester_id);
-    if (!requester) throw new NotFoundException(`User con ID ${createDto.requester_id} no encontrado`);
+    const requester = await this.userService.findUserById(requester_id);
+    if (!requester) throw new NotFoundException(`User con ID ${requester_id} no encontrado`);
 
     const request = await this.requestRepository.createRequest({
       listing,

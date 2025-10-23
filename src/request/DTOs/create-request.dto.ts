@@ -8,7 +8,4 @@ export class CreateRequestDto {
   @IsUUID()
   listing_id!: string;
 
-  @ApiProperty({ description: 'ID del usuario que realiza la solicitud' })
-  @IsUUID()
-  requester_id!: string;
 }

@@ -18,13 +18,14 @@ export class ListingService {
         private readonly userService: UserService,
     ){}
 
-    async createListing(createListingDto: CreateListingDto, user_id: string, files: Express.Multer.File[]){
-        
+    async createListing(createListingDto: CreateListingDto, user_id: string, files?: Express.Multer.File[]){
+        console.log("Estos son los files: ", files);
         const photos: ListingPhoto[] = [];
+
         if (files && files.length > 0) {
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
-                const url = this.mediaService.uploadFile(file);
+                const url = await this.mediaService.uploadFile(file);
                 const photo = new ListingPhoto();
                 photo.url = url;
                 photo.position = i;
