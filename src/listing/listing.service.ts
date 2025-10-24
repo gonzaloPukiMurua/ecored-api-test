@@ -5,7 +5,7 @@ import { UpdateListingDto } from './DTOs/update-listing.dto';
 import { ListingRepository } from './listing.repository';
 import { MediaService } from 'src/media/media.service';
 import { ListingPhoto } from 'src/media/entities/listing-photo.entity';
-import { Listing } from './entities/listing.entity';
+import { Listing, ListingStatus} from './entities/listing.entity';
 import { CategoryService } from 'src/category/category.service';
 import { UserService } from 'src/user/user.service';
 
@@ -47,9 +47,12 @@ export class ListingService {
         });
     }
 
-    async getListingById(id: string): Promise<Listing>{
+    async getListingById(id: string): Promise<Listing> {
         const listing = await this.listingRepository.getListingById(id);
         if (!listing) throw new NotFoundException(`Listing con ID ${id} no encontrado`);
+        if (listing.status !== ListingStatus.PUBLISHED){
+            throw new NotFoundException(`Listing con ID ${id} no está disponible públicamente`);
+        }
         return listing;
     }
 
@@ -63,6 +66,31 @@ export class ListingService {
 
         const { data, total, page: p, limit: l } = await this.listingRepository.findAll(search, category, page, limit, order);
         return { data: data || [], total, page: p, limit: l };
+    }
+
+    async getPublicListings(
+        search: string,
+        category?: string,
+        page = 1,
+        limit = 10,
+        order: 'ASC' | 'DESC' = 'ASC',
+    ) {
+    const { data, total, page: p, limit: l } = await this.listingRepository.findAllPublished(
+        search,
+        category,
+        page,
+        limit,
+        order,
+    );
+        return { data, total, page: p, limit: l };
+    }
+
+    async getListingsByOwnerId(ownerId: string): Promise<Listing[]> {
+        return await this.listingRepository.findByOwnerId(ownerId);
+    }
+
+    async getListingsByOwnerAndStatus(ownerId: string, statuses: ListingStatus[]): Promise<Listing[]> {
+        return await this.listingRepository.findByOwnerAndStatuses(ownerId, statuses);
     }
 
     // ✅ Actualizar un Listing

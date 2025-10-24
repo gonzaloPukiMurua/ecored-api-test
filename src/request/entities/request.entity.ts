@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-
+/* eslint-disable prettier/prettier */
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -20,6 +20,9 @@ export enum RequestStatus {
   ACCEPTED = 'accepted',
   REJECTED = 'rejected',
   CANCELLED = 'cancelled',
+  IN_TRANSIT = 'in_transit',
+  COMPLETED = 'completed',
+  EXPIRED = 'expired',
 }
 
 @Entity('requests')
@@ -31,9 +34,15 @@ export class Request {
   @JoinColumn({ name: 'listing_id', referencedColumnName: 'listing_id' })
   listing!: Listing;
 
+  // Usuario que hizo la solicitud
   @ManyToOne(() => User, (user) => user.requests, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'requester_id', referencedColumnName: 'user_id' })
   requester!: User;
+
+  // Usuario dueño del listing
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'publisher_id', referencedColumnName: 'user_id' })
+  publisher!: User;
 
   @Column({ type: 'enum', enum: RequestStatus, default: RequestStatus.PENDING })
   status!: RequestStatus;
@@ -46,4 +55,7 @@ export class Request {
 
   @OneToOne(() => Delivery, (delivery) => delivery.request)
   delivery?: Delivery;
+
+  @Column({ default: true })
+  active!: boolean; // opcional, según tus necesidades
 }

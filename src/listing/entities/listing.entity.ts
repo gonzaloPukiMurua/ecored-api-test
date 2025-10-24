@@ -25,9 +25,16 @@ export enum ItemCondition {
 export enum ListingStatus {
   DRAFT = 'draft',
   PUBLISHED = 'published',
-  BLOCKED = 'blocked',
+  RESERVED = 'reserved',
+  COMMITTED = 'committed',
+  IN_TRANSIT = 'in_transit',
   DELIVERED = 'delivered',
+  PAUSED = 'paused',
+  CANCELLED = 'cancelled',
+  BLOCKED = 'blocked',
+  EXPIRED = 'expired',
 }
+
 
 @Entity('listings')
 export class Listing {

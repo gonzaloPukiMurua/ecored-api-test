@@ -17,7 +17,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { CreateListingDto } from './DTOs/create-listing.dto';
 import { UpdateListingDto } from './DTOs/update-listing.dto';
 import { ListingService } from './listing.service';
-import { Listing } from './entities/listing.entity';
+import { Listing, ListingStatus } from './entities/listing.entity';
 import { 
     ApiConsumes, 
     ApiBody,
@@ -97,9 +97,27 @@ export class ListingController {
         @Query('page') page = 1,
         @Query('limit') limit = 10,
         @Query('order') order: 'ASC' | 'DESC' = 'ASC',
-    ): Promise<{ data: Listing[]; total: number; page: number; limit: number }> {
-        return await this.listingService.getListings(search ?? '', category, Number(page), Number(limit), order);
-  }
+    ) {
+        return await this.listingService.getPublicListings(search ?? '', category, page, limit, order);
+    }
+
+  // GET /listing/mine
+    @Get('mine')
+    @UseGuards(AccessTokenGuard)
+    @ApiOperation({ summary: 'Obtiene todas las publicaciones creadas por el usuario autenticado' })
+    async getMyListings(@Req() request: Request) {
+        const userPayload = request[REQUEST_USER_KEY] as JwtPayload;
+        return await this.listingService.getListingsByOwnerId(userPayload.user_id);
+    }
+
+    // GET /listing/mine/committed
+    @Get('mine/committed')
+    @UseGuards(AccessTokenGuard)
+    @ApiOperation({ summary: 'Obtiene publicaciones del usuario autenticado con estado comprometido/en tránsito' })
+    async getMyCommittedListings(@Req() request: Request) {
+        const userPayload = request[REQUEST_USER_KEY] as JwtPayload;
+        return await this.listingService.getListingsByOwnerAndStatus(userPayload.user_id, [ListingStatus.COMMITTED, ListingStatus.IN_TRANSIT]);
+    }
 
   // ✅ PUT /api/listing/update
   @Put('update')
