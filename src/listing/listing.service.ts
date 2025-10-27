@@ -1,5 +1,9 @@
 /* eslint-disable prettier/prettier */
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { 
+    Injectable, 
+    NotFoundException, 
+    UnauthorizedException 
+} from '@nestjs/common';
 import { CreateListingDto } from './DTOs/create-listing.dto';
 import { UpdateListingDto } from './DTOs/update-listing.dto';
 import { ListingRepository } from './listing.repository';
@@ -8,6 +12,7 @@ import { ListingPhoto } from 'src/media/entities/listing-photo.entity';
 import { Listing, ListingStatus} from './entities/listing.entity';
 import { CategoryService } from 'src/category/category.service';
 import { UserService } from 'src/user/user.service';
+import { RequestService } from 'src/request/request.service';
 
 @Injectable()
 export class ListingService {
@@ -16,6 +21,7 @@ export class ListingService {
         private readonly mediaService: MediaService,
         private readonly categoryService: CategoryService,
         private readonly userService: UserService,
+        private readonly requestService: RequestService,
     ){}
 
     async createListing(createListingDto: CreateListingDto, user_id: string, files?: Express.Multer.File[]){
@@ -100,6 +106,24 @@ export class ListingService {
 
         Object.assign(listing, updateDto);
         return await this.listingRepository.save(listing);
+    }
+
+    async updateListingStatus(listingId: string, newStatus: ListingStatus, userId: string): Promise<Listing> {
+        const listing = await this.listingRepository.getListingById(listingId);
+        if (!listing) throw new NotFoundException('Listing no encontrado');
+
+        if (listing.owner.user_id !== userId) throw new UnauthorizedException('No autorizado');
+
+        listing.status = newStatus;
+        const saved = await this.listingRepository.save(listing);
+
+        if (newStatus === ListingStatus.CANCELLED) {
+            await this.requestService.cancelRequestsByListingId(listingId);
+        } else if (newStatus === ListingStatus.EXPIRED) {
+            await this.requestService.expireRequestsByListingId(listingId);
+        }
+
+        return saved;
     }
 
     // ✅ Borrado lógico

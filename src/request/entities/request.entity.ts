@@ -23,7 +23,7 @@ export enum RequestStatus {
   IN_TRANSIT = 'in_transit',
   COMPLETED = 'completed',
   EXPIRED = 'expired',
-}
+} 
 
 @Entity('requests')
 export class Request {

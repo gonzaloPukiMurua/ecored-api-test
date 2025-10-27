@@ -12,6 +12,7 @@ import {
     Put,
     UseGuards,
     Req,
+    UnauthorizedException
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { CreateListingDto } from './DTOs/create-listing.dto';
@@ -133,5 +134,19 @@ export class ListingController {
   async softDeleteListing(@Param('id') id: string) {
     return await this.listingService.softDeleteListing(id);
   }
+
+    @Put(':id/status')
+    @UseGuards(AccessTokenGuard)
+    @ApiOperation({ summary: 'Cambia el estado de una publicación y actualiza las requests asociadas si aplica' })
+    @ApiResponse({ status: 200, description: 'Estado del listing actualizado', type: Listing })
+    async updateListingStatus(
+        @Req() request: Request,
+        @Param('id') id: string,
+        @Body('status') status: ListingStatus,
+    ) {
+    const userPayload = request[REQUEST_USER_KEY] as JwtPayload;
+    if (!userPayload) throw new UnauthorizedException('Usuario no autenticado');
+        return await this.listingService.updateListingStatus(id, status, userPayload.user_id);
+    }
 
 }

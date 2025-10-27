@@ -33,8 +33,7 @@ export enum ListingStatus {
   CANCELLED = 'cancelled',
   BLOCKED = 'blocked',
   EXPIRED = 'expired',
-}
-
+} 
 
 @Entity('listings')
 export class Listing {

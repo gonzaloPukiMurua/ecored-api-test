@@ -11,6 +11,7 @@ import { UserModule } from 'src/user/user.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
 import jwtConfig from 'src/config/jwt.config';
+import { RequestModule } from 'src/request/request.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import jwtConfig from 'src/config/jwt.config';
     CategoryModule,
     UserModule,
     JwtModule,
+    RequestModule,
     ConfigModule.forFeature(jwtConfig),
   ],
   controllers: [ListingController],

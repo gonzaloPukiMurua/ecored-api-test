@@ -62,4 +62,35 @@ export class RequestRepository {
       limit,
     };
   }
+
+  async findByPublisherId(
+    publisher_id: string,
+    page = 1,
+    limit = 10,
+    order: 'ASC' | 'DESC' = 'DESC',
+    status?: RequestStatus
+  ): Promise<{ data: Request[]; total: number; page: number; limit: number }> {
+    const where: FindOptionsWhere<Request> = { publisher: { user_id: publisher_id } };
+
+    if (status) {
+      where.status = status;
+    }
+
+    const [data, total] = await this.requestRepository.findAndCount({
+      where,
+      order: { created_at: order },
+      skip: (page - 1) * limit,
+      take: limit,
+      relations: ['listing', 'requester', 'publisher', 'delivery'],
+    });
+
+    return { data, total, page, limit };
+  }
+
+  async findByListingId(listingId: string): Promise<Request[]> {
+    return this.requestRepository.find({
+      where: { listing: { listing_id: listingId } },
+      relations: ['listing', 'requester', 'publisher'],
+    });
+  }
 }
