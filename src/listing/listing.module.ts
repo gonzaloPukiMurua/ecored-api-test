@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { ListingController } from './listing.controller';
 import { ListingService } from './listing.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -20,7 +20,7 @@ import { RequestModule } from 'src/request/request.module';
     CategoryModule,
     UserModule,
     JwtModule,
-    RequestModule,
+    forwardRef(() => RequestModule),
     ConfigModule.forFeature(jwtConfig),
   ],
   controllers: [ListingController],

@@ -76,11 +76,11 @@ export class ListingController {
         return this.listingService.createListing(createListingDto, userPayload.user_id, files);
     }
     
-    @Get(':id')
+    @Get('/details/:id')
     @ApiOperation({ summary: 'Obtiene un listing por su ID' })
     @ApiResponse({ status: 200, description: 'Listing encontrado', type: Listing })
     async getListingById(@Param('id') id: string): Promise<Listing> {
-        console.log("Estoy en listing Post.");
+        console.log("Estoy en listing Post. Id del producto: ", id);
         return await this.listingService.getListingById(id);
     }
 
@@ -99,7 +99,9 @@ export class ListingController {
         @Query('limit') limit = 10,
         @Query('order') order: 'ASC' | 'DESC' = 'ASC',
     ) {
-        return await this.listingService.getPublicListings(search ?? '', category, page, limit, order);
+        const listings = await this.listingService.getPublicListings(search ?? '', category, page, limit, order);
+        console.log("Esto devuelve GET: ", listings);
+        return listings;
     }
 
   // GET /listing/mine
@@ -120,20 +122,27 @@ export class ListingController {
         return await this.listingService.getListingsByOwnerAndStatus(userPayload.user_id, [ListingStatus.COMMITTED, ListingStatus.IN_TRANSIT]);
     }
 
-  // ✅ PUT /api/listing/update
-  @Put('update')
-  @ApiOperation({ summary: 'Actualiza un listing existente' })
-  @ApiResponse({ status: 200, description: 'Listing actualizado', type: Listing })
-  async updateListing(@Body() updateDto: UpdateListingDto): Promise<Listing> {
-    return await this.listingService.updateListing(updateDto);
-  }
+    // ✅ PUT /api/listing/update
+    @Put('update')
+    @UseGuards(AccessTokenGuard)
+    @ApiOperation({ summary: 'Actualiza un listing existente' })
+    @ApiResponse({ status: 200, description: 'Listing actualizado', type: Listing })
+    async updateListing(
+        @Body() updateDto: UpdateListingDto,
+        request: Request
+    ): Promise<Listing> {
+        const userPayload = request[REQUEST_USER_KEY] as JwtPayload;
+        return await this.listingService.updateListing(updateDto, userPayload.user_id);
+    }
 
-  // ✅ PUT /api/listing/:id → borrado lógico
-  @Put(':id')
-  @ApiOperation({ summary: 'Borrado lógico de un listing por ID' })
-  async softDeleteListing(@Param('id') id: string) {
-    return await this.listingService.softDeleteListing(id);
-  }
+    // ✅ PUT /api/listing/:id → borrado lógico
+    @Put(':id')
+    @UseGuards(AccessTokenGuard)
+    @ApiOperation({ summary: 'Borrado lógico de un listing por ID' })
+    async softDeleteListing(@Param('id') id: string, request: Request) {
+        const userPayload = request[REQUEST_USER_KEY] as JwtPayload;
+        return await this.listingService.softDeleteListing(id, userPayload.user_id);
+    }
 
     @Put(':id/status')
     @UseGuards(AccessTokenGuard)

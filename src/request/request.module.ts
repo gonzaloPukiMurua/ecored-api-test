@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { RequestController } from './request.controller';
 import { RequestService } from './request.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -14,7 +14,7 @@ import jwtConfig from 'src/config/jwt.config';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Request]),
-    ListingModule,
+    forwardRef(() => ListingModule),
     UserModule,
     JwtModule,
     ConfigModule.forFeature(jwtConfig),

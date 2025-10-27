@@ -90,6 +90,7 @@ export class ListingRepository {
       .take(limit);
 
     const [data, total] = await qb.getManyAndCount();
+    console.log("Esto se encuentra en el repository: ", data);
     return { data, total, page, limit };
   }
 

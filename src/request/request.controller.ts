@@ -92,7 +92,7 @@ export class RequestController {
   ): Promise<{ data: RequestEntity[]; total: number; page: number; limit: number }> {
     const userPayload = request[REQUEST_USER_KEY] as JwtPayload;
     if (!userPayload) throw new UnauthorizedException('Usuario no autenticado');
-
+    console.log("Estoy en request controller GET mine:")
     return this.requestService.getRequestsMadeByUser(
       userPayload.user_id,
       Number(page),

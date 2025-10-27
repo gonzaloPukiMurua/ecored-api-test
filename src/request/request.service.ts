@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable prettier/prettier */
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { RequestRepository } from './request.repository';
 import { CreateRequestDto } from './DTOs/create-request.dto';
 import { Request as RequestEntity, RequestStatus } from './entities/request.entity';
@@ -12,6 +12,7 @@ import { ListingStatus } from 'src/listing/entities/listing.entity';
 export class RequestService {
   constructor(
     private readonly requestRepository: RequestRepository,
+    @Inject(forwardRef(() => ListingService)) 
     private readonly listingService: ListingService,
     private readonly userService: UserService,
   ) {}
@@ -33,11 +34,9 @@ export class RequestService {
   async createRequest(createDto: CreateRequestDto, requester_id: string): Promise<RequestEntity> {
     // 1️⃣ Buscar el listing solicitado
     const listing = await this.listingService.getListingById(createDto.listing_id);
-    if (!listing) throw new NotFoundException(`Listing con ID ${createDto.listing_id} no encontrado`);
 
     // 2️⃣ Buscar al usuario que hace la solicitud
     const requester = await this.userService.findUserById(requester_id);
-    if (!requester) throw new NotFoundException(`Usuario con ID ${requester_id} no encontrado`);
 
     // 3️⃣ Obtener el publisher desde el listing
     const publisher = listing.owner;
@@ -90,7 +89,6 @@ export class RequestService {
 
     return updated;
   }
-
 
   async cancelRequestsByListingId(listingId: string): Promise<void> {
     const requests = await this.requestRepository.findByListingId(listingId);

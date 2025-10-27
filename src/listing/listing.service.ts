@@ -1,8 +1,9 @@
 /* eslint-disable prettier/prettier */
 import { 
+    forwardRef,
+    Inject,
     Injectable, 
-    NotFoundException, 
-    UnauthorizedException 
+    NotFoundException
 } from '@nestjs/common';
 import { CreateListingDto } from './DTOs/create-listing.dto';
 import { UpdateListingDto } from './DTOs/update-listing.dto';
@@ -13,6 +14,7 @@ import { Listing, ListingStatus} from './entities/listing.entity';
 import { CategoryService } from 'src/category/category.service';
 import { UserService } from 'src/user/user.service';
 import { RequestService } from 'src/request/request.service';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class ListingService {
@@ -21,6 +23,7 @@ export class ListingService {
         private readonly mediaService: MediaService,
         private readonly categoryService: CategoryService,
         private readonly userService: UserService,
+        @Inject(forwardRef(() => RequestService))
         private readonly requestService: RequestService,
     ){}
 
@@ -100,19 +103,39 @@ export class ListingService {
     }
 
     // ✅ Actualizar un Listing
-    async updateListing(updateDto: UpdateListingDto): Promise<Listing> {
-        const listing = await this.listingRepository.getListingById(updateDto.listing_id);
-        if (!listing) throw new NotFoundException('Listing no encontrado');
+    async updateListing(updateDto: UpdateListingDto, user_id: string): Promise<Listing> {
+
+        const user = await this.userService.findUserById(user_id);
+
+        const listing = await this.getListingById(updateDto.listing_id);
+
+        this.userIsOwner(user, listing);
 
         Object.assign(listing, updateDto);
         return await this.listingRepository.save(listing);
     }
+        // ✅ Borrado lógico
+    async softDeleteListing(listingId: string, user_id: string): Promise<{ message: string }> {
+
+        const user = await this.userService.findUserById(user_id);
+
+        const listing = await this.getListingById(listingId);
+
+        this.userIsOwner(user, listing);
+
+        listing.active = false;
+        await this.listingRepository.save(listing);
+
+        return { message: `Listing ${listingId} marcado como inactivo` };
+    }
 
     async updateListingStatus(listingId: string, newStatus: ListingStatus, userId: string): Promise<Listing> {
-        const listing = await this.listingRepository.getListingById(listingId);
-        if (!listing) throw new NotFoundException('Listing no encontrado');
 
-        if (listing.owner.user_id !== userId) throw new UnauthorizedException('No autorizado');
+        const user = await this.userService.findUserById(userId);
+
+        const listing = await this.getListingById(listingId);
+
+        this.userIsOwner(user, listing);
 
         listing.status = newStatus;
         const saved = await this.listingRepository.save(listing);
@@ -126,14 +149,7 @@ export class ListingService {
         return saved;
     }
 
-    // ✅ Borrado lógico
-    async softDeleteListing(id: string): Promise<{ message: string }> {
-        const listing = await this.listingRepository.getListingById(id);
-        if (!listing) throw new NotFoundException('Listing no encontrado');
-
-        listing.active = false;
-        await this.listingRepository.save(listing);
-
-        return { message: `Listing ${id} marcado como inactivo` };
+    userIsOwner(user: User, listing: Listing){
+        if( user !== listing.owner) throw new NotFoundException('El usuario no es el creador de la publicacion');
     }
 }
