@@ -3,7 +3,8 @@ import {
     forwardRef,
     Inject,
     Injectable, 
-    NotFoundException
+    NotFoundException,
+    UnauthorizedException
 } from '@nestjs/common';
 import { CreateListingDto } from './DTOs/create-listing.dto';
 import { UpdateListingDto } from './DTOs/update-listing.dto';
@@ -15,6 +16,7 @@ import { CategoryService } from 'src/category/category.service';
 import { UserService } from 'src/user/user.service';
 import { RequestService } from 'src/request/request.service';
 import { User } from 'src/user/entities/user.entity';
+import { ListingResponseDto } from './DTOs/listing-response.dto';
 
 @Injectable()
 export class ListingService {
@@ -27,7 +29,11 @@ export class ListingService {
         private readonly requestService: RequestService,
     ){}
 
-    async createListing(createListingDto: CreateListingDto, user_id: string, files?: Express.Multer.File[]){
+    async createListing(
+        createListingDto: CreateListingDto, 
+        user_id: string, 
+        files?: Express.Multer.File[]): Promise<ListingResponseDto>
+        {
         console.log("Estos son los files: ", files);
         const photos: ListingPhoto[] = [];
 
@@ -56,10 +62,27 @@ export class ListingService {
         });
     }
 
-    async getListingById(id: string): Promise<Listing> {
-        const listing = await this.listingRepository.getListingById(id);
+    async getListingEntityById(listing_id: string): Promise<Listing>{
+        const listing = await this.listingRepository.getEntityById(listing_id);
+        if (!listing) throw new NotFoundException(`Listing con ID ${listing_id} no encontrado`);
+        return listing;
+    }
+
+    async getListingById(id: string): Promise<ListingResponseDto> {
+
+        const listing = await this.listingRepository.getListingDtoById(id);
         if (!listing) throw new NotFoundException(`Listing con ID ${id} no encontrado`);
-        if (listing.status !== ListingStatus.PUBLISHED){
+        return listing;
+    }
+
+    async getPublishedListingById(id: string, user_id: string): Promise<ListingResponseDto>{
+        const user = await this.userService.findUserById(user_id);
+        const listing = await this.getListingById(id);
+
+        console.log("Usuario logueado: ", user.user_id);
+        console.log("Listing: ", listing.owner.user_id);
+        if(listing.status !== ListingStatus.PUBLISHED && user.user_id !== listing.owner.user_id){
+            console.log("Listing no publico.");
             throw new NotFoundException(`Listing con ID ${id} no está disponible públicamente`);
         }
         return listing;
@@ -71,7 +94,7 @@ export class ListingService {
         page = 1,
         limit = 10,
         order: 'ASC' | 'DESC' = 'ASC',
-    ): Promise<{data: Listing[], total: number, page: number, limit: number}>{
+    ): Promise<{data: ListingResponseDto[], total: number, page: number, limit: number}>{
 
         const { data, total, page: p, limit: l } = await this.listingRepository.findAll(search, category, page, limit, order);
         return { data: data || [], total, page: p, limit: l };
@@ -91,25 +114,27 @@ export class ListingService {
         limit,
         order,
     );
+
+    console.log("Datos de DB: ", data);
         return { data, total, page: p, limit: l };
     }
 
-    async getListingsByOwnerId(ownerId: string): Promise<Listing[]> {
+    async getListingsByOwnerId(ownerId: string): Promise<ListingResponseDto[]> {
         return await this.listingRepository.findByOwnerId(ownerId);
     }
 
-    async getListingsByOwnerAndStatus(ownerId: string, statuses: ListingStatus[]): Promise<Listing[]> {
+    async getListingsByOwnerAndStatus(ownerId: string, statuses: ListingStatus[]): Promise<ListingResponseDto[]> {
         return await this.listingRepository.findByOwnerAndStatuses(ownerId, statuses);
     }
 
     // ✅ Actualizar un Listing
-    async updateListing(updateDto: UpdateListingDto, user_id: string): Promise<Listing> {
+    async updateListing(listing_id: string, updateDto: UpdateListingDto, user_id: string): Promise<ListingResponseDto> {
 
         const user = await this.userService.findUserById(user_id);
 
-        const listing = await this.getListingById(updateDto.listing_id);
-
-        this.userIsOwner(user, listing);
+        const listing = await this.listingRepository.getEntityById(updateDto.listing_id);
+        if(!listing) throw new NotFoundException(`Listing con ID ${updateDto.listing_id} no está disponible.`);
+        this.ensureUserIsOwner(user, listing);
 
         Object.assign(listing, updateDto);
         return await this.listingRepository.save(listing);
@@ -119,9 +144,9 @@ export class ListingService {
 
         const user = await this.userService.findUserById(user_id);
 
-        const listing = await this.getListingById(listingId);
-
-        this.userIsOwner(user, listing);
+        const listing = await this.listingRepository.getEntityById(listingId);
+        if(!listing) throw new NotFoundException(`Listing con ID ${listingId} no está disponible.`);
+        this.ensureUserIsOwner(user, listing);
 
         listing.active = false;
         await this.listingRepository.save(listing);
@@ -129,27 +154,39 @@ export class ListingService {
         return { message: `Listing ${listingId} marcado como inactivo` };
     }
 
-    async updateListingStatus(listingId: string, newStatus: ListingStatus, userId: string): Promise<Listing> {
+    async updateListingStatusOnNewRequest(listing_id: string): Promise<ListingResponseDto>{
+        const listing = await this.listingRepository.getEntityById(listing_id);
+        if(!listing) throw new NotFoundException(`Listing con ID ${listing_id} no está disponible.`);
+        listing.status = ListingStatus.RESERVED;
+        const saved = await this.listingRepository.save(listing);
+        return saved;
+    }
+
+    async updateListingStatus(listing_id: string, newStatus: ListingStatus, userId: string): Promise<ListingResponseDto> {
 
         const user = await this.userService.findUserById(userId);
 
-        const listing = await this.getListingById(listingId);
+        const listing = await this.listingRepository.getEntityById(listing_id);
 
-        this.userIsOwner(user, listing);
+        if(!listing) throw new NotFoundException(`Listing con ID ${listing_id} no está disponible.`);
+
+        this.ensureUserIsOwner(user, listing);
 
         listing.status = newStatus;
         const saved = await this.listingRepository.save(listing);
 
         if (newStatus === ListingStatus.CANCELLED) {
-            await this.requestService.cancelRequestsByListingId(listingId);
+            await this.requestService.cancelRequestsByListingId(listing_id);
         } else if (newStatus === ListingStatus.EXPIRED) {
-            await this.requestService.expireRequestsByListingId(listingId);
+            await this.requestService.expireRequestsByListingId(listing_id);
         }
 
         return saved;
     }
 
-    userIsOwner(user: User, listing: Listing){
-        if( user !== listing.owner) throw new NotFoundException('El usuario no es el creador de la publicacion');
+    private ensureUserIsOwner(user: User, listing: Listing) {
+        if (!listing.owner || user.user_id !== listing.owner.user_id) {
+            throw new UnauthorizedException('El usuario no es el creador de la publicación');
+        }
     }
 }

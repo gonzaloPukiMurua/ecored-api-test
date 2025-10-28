@@ -58,7 +58,7 @@ export class Listing {
   @Column({ type: 'enum', enum: ItemCondition })
   item_condition!: ItemCondition;
 
-  @Column({ type: 'enum', enum: ListingStatus, default: ListingStatus.DRAFT })
+  @Column({ type: 'enum', enum: ListingStatus, default: ListingStatus.PUBLISHED })
   status!: ListingStatus;
 
   @Column({ type: 'float', nullable: true, default: null })

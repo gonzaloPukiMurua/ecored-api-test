@@ -33,7 +33,7 @@ export class RequestService {
 
   async createRequest(createDto: CreateRequestDto, requester_id: string): Promise<RequestEntity> {
     // 1️⃣ Buscar el listing solicitado
-    const listing = await this.listingService.getListingById(createDto.listing_id);
+    const listing = await this.listingService.getListingEntityById(createDto.listing_id);
 
     // 2️⃣ Buscar al usuario que hace la solicitud
     const requester = await this.userService.findUserById(requester_id);
@@ -51,6 +51,8 @@ export class RequestService {
       active: true,
     });
 
+    const updatedListing = await this.listingService.updateListingStatusOnNewRequest(createDto.listing_id)
+    console.log(updatedListing);
     return request;
   }
 

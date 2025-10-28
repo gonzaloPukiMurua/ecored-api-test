@@ -17,6 +17,7 @@ import {
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { CreateListingDto } from './DTOs/create-listing.dto';
 import { UpdateListingDto } from './DTOs/update-listing.dto';
+import { ListingResponseDto } from './DTOs/listing-response.dto';
 import { ListingService } from './listing.service';
 import { Listing, ListingStatus } from './entities/listing.entity';
 import { 
@@ -77,14 +78,20 @@ export class ListingController {
     }
     
     @Get('/details/:id')
+    @UseGuards(AccessTokenGuard)
     @ApiOperation({ summary: 'Obtiene un listing por su ID' })
     @ApiResponse({ status: 200, description: 'Listing encontrado', type: Listing })
-    async getListingById(@Param('id') id: string): Promise<Listing> {
+    async getListingById(
+        @Param('id') id: string,
+        @Req() request: Request
+    ): Promise<ListingResponseDto> {
         console.log("Estoy en listing Post. Id del producto: ", id);
-        return await this.listingService.getListingById(id);
+        const userPayload = request[REQUEST_USER_KEY] as JwtPayload;
+        return await this.listingService.getPublishedListingById(id, userPayload.user_id);
     }
 
     @Get()
+    @UseGuards(AccessTokenGuard)
     @ApiOperation({ summary: 'Obtiene listados con filtros, búsqueda, orden y paginación' })
     @ApiQuery({ name: 'search', required: false, description: 'Filtra por título o descripción' })
     @ApiQuery({ name: 'category', required: false, description: 'Filtra por categoría' })
@@ -99,6 +106,7 @@ export class ListingController {
         @Query('limit') limit = 10,
         @Query('order') order: 'ASC' | 'DESC' = 'ASC',
     ) {
+        console.log("Estoy en listing GET")
         const listings = await this.listingService.getPublicListings(search ?? '', category, page, limit, order);
         console.log("Esto devuelve GET: ", listings);
         return listings;
@@ -109,6 +117,7 @@ export class ListingController {
     @UseGuards(AccessTokenGuard)
     @ApiOperation({ summary: 'Obtiene todas las publicaciones creadas por el usuario autenticado' })
     async getMyListings(@Req() request: Request) {
+        console.log("Estoy en listing/mine GET")
         const userPayload = request[REQUEST_USER_KEY] as JwtPayload;
         return await this.listingService.getListingsByOwnerId(userPayload.user_id);
     }
@@ -123,28 +132,32 @@ export class ListingController {
     }
 
     // ✅ PUT /api/listing/update
-    @Put('update')
+    @Put('update/:id')
     @UseGuards(AccessTokenGuard)
     @ApiOperation({ summary: 'Actualiza un listing existente' })
     @ApiResponse({ status: 200, description: 'Listing actualizado', type: Listing })
     async updateListing(
+        @Param('id') listing_id: string,
         @Body() updateDto: UpdateListingDto,
-        request: Request
-    ): Promise<Listing> {
+        @Req() request: Request
+    ): Promise<ListingResponseDto> {
+        console.log("Estoy en listing PUT update id");
         const userPayload = request[REQUEST_USER_KEY] as JwtPayload;
-        return await this.listingService.updateListing(updateDto, userPayload.user_id);
+        console.log(userPayload);
+        return await this.listingService.updateListing(listing_id, updateDto, userPayload.user_id);
     }
 
     // ✅ PUT /api/listing/:id → borrado lógico
-    @Put(':id')
+    @Put('delete/:id')
     @UseGuards(AccessTokenGuard)
     @ApiOperation({ summary: 'Borrado lógico de un listing por ID' })
     async softDeleteListing(@Param('id') id: string, request: Request) {
+        console.log("Estoy en listing PUT soft delete");
         const userPayload = request[REQUEST_USER_KEY] as JwtPayload;
         return await this.listingService.softDeleteListing(id, userPayload.user_id);
     }
 
-    @Put(':id/status')
+    @Put('update/status/:id')
     @UseGuards(AccessTokenGuard)
     @ApiOperation({ summary: 'Cambia el estado de una publicación y actualiza las requests asociadas si aplica' })
     @ApiResponse({ status: 200, description: 'Estado del listing actualizado', type: Listing })

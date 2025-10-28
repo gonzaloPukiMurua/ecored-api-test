@@ -33,8 +33,7 @@ export class EventAnalyticsService {
     }
 
     if (dto.listing_id) {
-      const listing = await this.listingService.getListingById(dto.listing_id);
-      if (!listing) throw new NotFoundException(`Listing con ID ${dto.listing_id} no encontrado`);
+      const listing = await this.listingService.getListingEntityById(dto.listing_id);
       event.listing = listing;
     }
 
