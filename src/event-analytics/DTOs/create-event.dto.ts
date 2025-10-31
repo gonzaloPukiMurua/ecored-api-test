@@ -1,31 +1,25 @@
 /* eslint-disable prettier/prettier */
-// src/event-analytics/dto/create-event.dto.ts
-import { ApiProperty } from '@nestjs/swagger';
+// src/event-analytics/DTOs/create-event.dto.ts
 import { IsEnum, IsOptional, IsUUID, IsObject } from 'class-validator';
 import { EventType } from '../entities/event-analytics.entity';
 
 export class CreateEventDto {
-  @ApiProperty({ enum: EventType, description: 'Tipo de evento' })
   @IsEnum(EventType)
   event_type!: EventType;
 
-  @ApiProperty({ description: 'ID del usuario relacionado', required: false })
-  @IsUUID()
   @IsOptional()
+  @IsUUID()
   user_id?: string;
 
-  @ApiProperty({ description: 'ID del listing relacionado', required: false })
-  @IsUUID()
   @IsOptional()
+  @IsUUID()
   listing_id?: string;
 
-  @ApiProperty({ description: 'ID del request relacionado', required: false })
-  @IsUUID()
   @IsOptional()
+  @IsUUID()
   request_id?: string;
 
-  @ApiProperty({ description: 'Payload adicional', required: false })
-  @IsObject()
   @IsOptional()
+  @IsObject()
   payload?: Record<string, any>;
 }

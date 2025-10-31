@@ -127,7 +127,6 @@ export class ListingService {
         return await this.listingRepository.findByOwnerAndStatuses(ownerId, statuses);
     }
 
-    // ✅ Actualizar un Listing
     async updateListing(listing_id: string, updateDto: UpdateListingDto, user_id: string): Promise<ListingResponseDto> {
 
         const user = await this.userService.findUserById(user_id);
@@ -139,7 +138,7 @@ export class ListingService {
         Object.assign(listing, updateDto);
         return await this.listingRepository.save(listing);
     }
-        // ✅ Borrado lógico
+
     async softDeleteListing(listingId: string, user_id: string): Promise<{ message: string }> {
 
         const user = await this.userService.findUserById(user_id);

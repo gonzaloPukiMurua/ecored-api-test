@@ -1,21 +1,19 @@
 /* eslint-disable prettier/prettier */
 // src/event-analytics/event-analytics.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { EventAnalytics } from './entities/event-analytics.entity';
+import { EventAnalytics, EventType } from './entities/event-analytics.entity';
 import { CreateEventDto } from './DTOs/create-event.dto';
 import { UserService } from 'src/user/user.service';
 import { Request } from '../request/entities/request.entity';
 import { ListingService } from 'src/listing/listing.service';
 import { RequestService } from 'src/request/request.service';
+import { EventAnalyticsRepository } from './event-analytics.repository';
 
 
 @Injectable()
 export class EventAnalyticsService {
   constructor(
-    @InjectRepository(EventAnalytics)
-    private readonly eventRepository: Repository<EventAnalytics>,
+    private readonly eventRepository: EventAnalyticsRepository,
     private readonly userService: UserService,
     private readonly listingService: ListingService,
     private readonly requestService: RequestService,
@@ -44,5 +42,21 @@ export class EventAnalyticsService {
     }
 
     return this.eventRepository.save(event);
+  }
+  async getEvents(
+    filters: {
+      event_type?: EventType;
+      user_id?: string;
+      listing_id?: string;
+      request_id?: string;
+      start_date?: Date;
+      end_date?: Date;
+    },
+    page = 1,
+    limit = 10,
+    order: 'ASC' | 'DESC' = 'DESC',
+  ) {
+    console.log("Estoy en event service GET findWithFilters")
+    return await this.eventRepository.findWithFilters(filters, page, limit, order);
   }
 }

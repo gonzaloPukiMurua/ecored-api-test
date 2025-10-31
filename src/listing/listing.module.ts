@@ -12,6 +12,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
 import jwtConfig from 'src/config/jwt.config';
 import { RequestModule } from 'src/request/request.module';
+import { EventAnalyticsModule } from 'src/event-analytics/event-analytics.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { RequestModule } from 'src/request/request.module';
     CategoryModule,
     UserModule,
     JwtModule,
+    forwardRef(() => EventAnalyticsModule),
     forwardRef(() => RequestModule),
     ConfigModule.forFeature(jwtConfig),
   ],

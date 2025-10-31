@@ -32,17 +32,11 @@ export class RequestService {
   }
 
   async createRequest(createDto: CreateRequestDto, requester_id: string): Promise<RequestEntity> {
-    // 1️⃣ Buscar el listing solicitado
+
     const listing = await this.listingService.getListingEntityById(createDto.listing_id);
-
-    // 2️⃣ Buscar al usuario que hace la solicitud
     const requester = await this.userService.findUserById(requester_id);
-
-    // 3️⃣ Obtener el publisher desde el listing
     const publisher = listing.owner;
     if (!publisher) throw new NotFoundException(`El listing con ID ${listing.listing_id} no tiene un owner válido`);
-
-    // 4️⃣ Crear la request con requester + publisher
     const request = await this.requestRepository.createRequest({
       listing,
       requester,
@@ -56,36 +50,46 @@ export class RequestService {
     return request;
   }
 
-  async updateRequest(id: string, status: string): Promise<RequestEntity> {
-    const request = await this.requestRepository.findById(id);
-    if (!request) throw new NotFoundException(`Request con ID ${id} no encontrada`);
-
-    request.status = status as RequestStatus;
-    return this.requestRepository.updateStatus(request, status);
-  }
-
-  async updateRequestStatus(requestId: string, newStatus: RequestStatus): Promise<RequestEntity> {
+  async updateStatus(requestId: string, newStatus: RequestStatus): Promise<RequestEntity> {
     const request = await this.requestRepository.findById(requestId);
-    if (!request) throw new NotFoundException('Request no encontrada');
+    if (!request) throw new NotFoundException(`Request con ID ${requestId} no encontrada`);
 
     request.status = newStatus;
     const updated = await this.requestRepository.updateStatus(request, newStatus);
 
-    // 🔁 Sincronizar listing
     switch (newStatus) {
       case RequestStatus.ACCEPTED:
-        await this.listingService.updateListingStatus(request.listing.listing_id, ListingStatus.COMMITTED, request.publisher.user_id);
+        await this.listingService.updateListingStatus(
+          request.listing.listing_id,
+          ListingStatus.COMMITTED,
+          request.publisher.user_id
+        );
         break;
+
       case RequestStatus.IN_TRANSIT:
-        await this.listingService.updateListingStatus(request.listing.listing_id, ListingStatus.IN_TRANSIT, request.publisher.user_id);
+        await this.listingService.updateListingStatus(
+          request.listing.listing_id,
+          ListingStatus.IN_TRANSIT,
+          request.publisher.user_id
+        );
         break;
+
       case RequestStatus.COMPLETED:
-        await this.listingService.updateListingStatus(request.listing.listing_id, ListingStatus.DELIVERED, request.publisher.user_id);
+        await this.listingService.updateListingStatus(
+          request.listing.listing_id,
+          ListingStatus.DELIVERED,
+          request.publisher.user_id
+        );
         break;
+
       case RequestStatus.REJECTED:
       case RequestStatus.CANCELLED:
       case RequestStatus.EXPIRED:
-        await this.listingService.updateListingStatus(request.listing.listing_id, ListingStatus.PUBLISHED, request.publisher.user_id);
+        await this.listingService.updateListingStatus(
+          request.listing.listing_id,
+          ListingStatus.PUBLISHED,
+          request.publisher.user_id
+        );
         break;
     }
 

@@ -28,9 +28,6 @@ export class RequestRepository {
     return this.requestRepository.save(request);
   }
 
-  /**
-   * Devuelve todas las requests de un usuario, con paginado y orden configurable.
-   */
   async findByUserId(
     user_id: string,
     page = 1,

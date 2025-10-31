@@ -15,7 +15,6 @@ import {
  } from '@nestjs/common';
 import { RequestService } from './request.service';
 import { CreateRequestDto } from './DTOs/create-request.dto';
-import { UpdateRequestDto } from './DTOs/update-request.dto';
 import { Request as RequestEntity, RequestStatus } from './entities/request.entity';
 import { 
   ApiOperation, 
@@ -27,13 +26,17 @@ import { AccessTokenGuard } from 'src/auth/guards/access-token.guard';
 import type { Request } from 'express';
 import { REQUEST_USER_KEY } from 'src/auth/constants/auth.constants';
 import { JwtPayload } from 'src/auth/interfaces/jwt-payload.interface';
+import { mapRequestStatusToEventType } from 'src/event-analytics/event-type.mapper';
+import { EventAnalyticsService } from 'src/event-analytics/event-analytics.service';
 
 @ApiTags('Requests')
 @Controller('request')
 export class RequestController {
-  constructor(private readonly requestService: RequestService) {}
+  constructor(
+    private readonly requestService: RequestService,
+    private readonly eventAnalyticsService: EventAnalyticsService
+  ) {}
 
-  // ✅ Crear una nueva request
   @Post()
   @UseGuards(AccessTokenGuard)
   @ApiOperation({ summary: 'Crea una request para un listing' })
@@ -53,28 +56,40 @@ export class RequestController {
     }
   }
 
-  // ✅ Actualizar estado de una request
   @Put(':id')
   @UseGuards(AccessTokenGuard)
   @ApiOperation({ summary: 'Actualiza el status de una request' })
   @ApiResponse({ status: 200, description: 'Request actualizada correctamente', type: RequestEntity })
   async updateRequest(
     @Req() request: Request,
-    @Param('id') id: string,
-    @Body() updateRequestDto: UpdateRequestDto,
+    @Param('id') request_id: string,
+    @Body() updateRequestDto: RequestStatus,
   ): Promise<RequestEntity> {
     const userPayload = request[REQUEST_USER_KEY] as JwtPayload;
     if (!userPayload) throw new UnauthorizedException('Usuario no autenticado');
-
     try {
-      return await this.requestService.updateRequest(id, updateRequestDto.status);
+      const updatedRequest = await this.requestService.updateStatus(request_id, updateRequestDto);
+      const eventType = mapRequestStatusToEventType(updateRequestDto)
+      if(eventType){
+        await this.eventAnalyticsService.createEvent({
+          event_type: eventType,
+          user_id: userPayload.user_id,
+          listing_id: updatedRequest.listing.listing_id,
+          request_id: updatedRequest.request_id,
+          payload: {
+            previous_status: updatedRequest.status,
+            new_status: updateRequestDto
+          },
+        });
+      }
+
+      return updatedRequest;
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException('Error interno del servidor');
     }
   }
 
-  // ✅ Requests hechas por el usuario logueado
   @Get('made')
   @UseGuards(AccessTokenGuard)
   @ApiOperation({ summary: 'Devuelve las requests que he hecho' })
@@ -102,7 +117,6 @@ export class RequestController {
     );
   }
 
-  // ✅ Requests recibidas por mis publicaciones
   @Get('received')
   @UseGuards(AccessTokenGuard)
   @ApiOperation({ summary: 'Devuelve las requests hechas a mis publicaciones' })

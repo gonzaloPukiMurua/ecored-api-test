@@ -40,9 +40,7 @@ export class AuthService {
         return { token};
     }
     async register(credentials: CreateUserDto){
-        if(credentials.password !== credentials.confirm_password){
-            throw new BadRequestException('Passwords does not match');
-        }
+        
         const userExists = await this.userService.findOneByEmail( credentials.email);
         if(userExists){
             throw new HttpException(

@@ -8,7 +8,6 @@ import {
   Matches,
   MaxLength,
   MinLength,
-  Validate,
   ValidationArguments,
   ValidatorConstraint,
   ValidatorConstraintInterface,
@@ -48,12 +47,6 @@ export class CreateUserDto {
   @Length(8, 15)
   @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/)
   password!: string;
-
-  @ApiProperty({ example: 'Password1@' })
-  @IsNotEmpty()
-  @IsString()
-  @Validate(IsMatchingPasswordsConstraint)
-  confirm_password!: string;
 
   @ApiPropertyOptional({ example: '1990-05-23', description: 'Fecha de nacimiento del usuario.' })
   @IsOptional()

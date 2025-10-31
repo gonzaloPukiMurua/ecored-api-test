@@ -34,7 +34,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
   
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix('ecored-api');
   app.useGlobalInterceptors({
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
       const req = context.switchToHttp().getRequest<Request>();

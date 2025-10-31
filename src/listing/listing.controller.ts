@@ -32,12 +32,15 @@ import { AccessTokenGuard } from 'src/auth/guards/access-token.guard';
 import type { Request } from 'express';
 import { REQUEST_USER_KEY } from 'src/auth/constants/auth.constants';
 import { JwtPayload } from 'src/auth/interfaces/jwt-payload.interface';
+import { EventAnalyticsService } from 'src/event-analytics/event-analytics.service';
+import { EventType } from 'src/event-analytics/entities/event-analytics.entity';
 
 ApiBearerAuth()
 @Controller('listing')
 export class ListingController {
     constructor(
-        private readonly listingService: ListingService
+        private readonly listingService: ListingService,
+        private readonly eventAnalyticsService: EventAnalyticsService
     ){}
 
     @Post()
@@ -74,7 +77,24 @@ export class ListingController {
             console.error(error);
             return { message: 'Error interno del servidor' }
         }
-        return this.listingService.createListing(createListingDto, userPayload.user_id, files);
+        const listing = await this.listingService.createListing(createListingDto, userPayload.user_id, files);
+        this.eventAnalyticsService.createEvent({
+            event_type: EventType.PUBLICATION_CREATED,
+            user_id: userPayload.user_id,
+            listing_id: listing.listing_id,
+            payload: {
+                title: createListingDto.title,
+                category_id: createListingDto.category_id,
+                subcategory_id: createListingDto.subcategory_id,
+                hasImages: !!files?.length,
+            location: {
+                lat: createListingDto.lat,
+                lng: createListingDto.lng,
+                zone_text: createListingDto.zone_text,
+            },
+            },
+        }).catch((err) => console.error('Error registrando evento LISTING_CREATED:', err));
+        return listing;
     }
     
     @Get('/details/:id')
@@ -87,6 +107,14 @@ export class ListingController {
     ): Promise<ListingResponseDto> {
         console.log("Estoy en listing Post. Id del producto: ", id);
         const userPayload = request[REQUEST_USER_KEY] as JwtPayload;
+        await this.eventAnalyticsService.createEvent({
+                event_type: EventType.VIEW,
+                user_id: userPayload.user_id,
+                listing_id: id,
+                payload: {
+                source: 'details-view',
+            },
+        });
         return await this.listingService.getPublishedListingById(id, userPayload.user_id);
     }
 
@@ -100,15 +128,32 @@ export class ListingController {
     @ApiQuery({ name: 'order', required: false, description: 'Orden ASC o DESC', enum: ['ASC', 'DESC'] })
     @ApiResponse({ status: 200, description: 'Listado de publicaciones', type: [Listing] })
     async getListings(
+        @Req() request: Request,
         @Query('search') search?: string,
         @Query('category') category?: string,
         @Query('page') page = 1,
         @Query('limit') limit = 10,
         @Query('order') order: 'ASC' | 'DESC' = 'ASC',
+       
     ) {
+        const userPayload = request[REQUEST_USER_KEY] as JwtPayload;
         console.log("Estoy en listing GET")
         const listings = await this.listingService.getPublicListings(search ?? '', category, page, limit, order);
         console.log("Esto devuelve GET: ", listings);
+
+        await this.eventAnalyticsService.createEvent({
+        event_type: EventType.SEARCH_PERFORMED,
+        user_id: userPayload?.user_id,
+        payload: {
+            search: search ?? null,
+            category: category ?? null,
+            page,
+            limit,
+            order,
+            total_results: listings.total,
+            },
+        });
+
         return listings;
     }
 
