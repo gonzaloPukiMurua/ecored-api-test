@@ -2,7 +2,7 @@
 // src/listing/dto/create-listing.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsOptional, IsString, IsEnum, IsUUID } from 'class-validator';
-import { ItemCondition } from '../entities/listing.entity';
+import { ItemCondition } from '../enums/item-condition.enum';
 
 export class CreateListingDto {
   @ApiProperty({ example: 'Silla reciclada' })

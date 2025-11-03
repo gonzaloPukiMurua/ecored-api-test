@@ -16,11 +16,7 @@ import { Request } from '../../request/entities/request.entity';
 import { Report } from '../../report/entities/report.entity';
 import { EventAnalytics } from '../../event-analytics/entities/event-analytics.entity';
 import { Address } from 'src/address/entities/address.entity';
-
-export enum UserRole {
-  USER = 'user',
-  ADMIN = 'admin',
-}
+import { UserRole } from '../enums/user-role.enum';
 
 @Entity('users')
 export class User {
@@ -50,8 +46,6 @@ export class User {
 
   @UpdateDateColumn()
   updated_at!: Date;
-
-  // Relations
 
   @ManyToMany(() => Address, (address) => address.users, {
       cascade: true,

@@ -7,5 +7,4 @@ export class CreateRequestDto {
   @ApiProperty({ description: 'ID del listing que se desea solicitar' })
   @IsUUID()
   listing_id!: string;
-
 }

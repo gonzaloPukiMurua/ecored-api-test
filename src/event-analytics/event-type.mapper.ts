@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
-import { RequestStatus } from 'src/request/entities/request.entity';
-import { EventType } from './entities/event-analytics.entity';
+import { RequestStatus } from 'src/request/enums/request-status.enum';
+import { EventType } from './enums/event-type.enum';
 
 export const mapRequestStatusToEventType = (status: RequestStatus): EventType | null => {
   const map: Record<RequestStatus, EventType> = {

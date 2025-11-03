@@ -1,12 +1,13 @@
 /* eslint-disable prettier/prettier */
 // src/event-analytics/event-analytics.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { EventAnalytics, EventType } from './entities/event-analytics.entity';
+import { EventAnalytics } from './entities/event-analytics.entity';
+import { EventType } from './enums/event-type.enum';
 import { CreateEventDto } from './DTOs/create-event.dto';
 import { UserService } from 'src/user/user.service';
 import { Request } from '../request/entities/request.entity';
-import { ListingService } from 'src/listing/listing.service';
-import { RequestService } from 'src/request/request.service';
+import { ListingService } from 'src/listing/services/listing.service';
+import { RequestService } from 'src/request/services/request.service';
 import { EventAnalyticsRepository } from './event-analytics.repository';
 
 

@@ -35,7 +35,7 @@ export class CategoryController {
         return await this.categoryService.createCategory(createCategoryDto);
     }
 
-    // 🔵 Obtener una categoría por ID
+  // 🔵 Obtener una categoría por ID
   @Auth(AuthType.None)  
   @Get(':id')
   @ApiOperation({ summary: 'Obtiene una categoría según su ID' })

@@ -6,17 +6,18 @@ import {
     NotFoundException,
     UnauthorizedException
 } from '@nestjs/common';
-import { CreateListingDto } from './DTOs/create-listing.dto';
-import { UpdateListingDto } from './DTOs/update-listing.dto';
-import { ListingRepository } from './listing.repository';
+import { CreateListingDto } from '../DTOs/create-listing.dto';
+import { UpdateListingDto } from '../DTOs/update-listing.dto';
+import { ListingRepository } from '../listing.repository';
 import { MediaService } from 'src/media/media.service';
 import { ListingPhoto } from 'src/media/entities/listing-photo.entity';
-import { Listing, ListingStatus} from './entities/listing.entity';
+import { Listing } from '../entities/listing.entity';
+import { ListingStatus } from '../enums/listing-status.enum';
 import { CategoryService } from 'src/category/category.service';
 import { UserService } from 'src/user/user.service';
-import { RequestService } from 'src/request/request.service';
 import { User } from 'src/user/entities/user.entity';
-import { ListingResponseDto } from './DTOs/listing-response.dto';
+import { ListingResponseDto } from '../DTOs/listing-response.dto';
+import { ListingStateMachineService } from './listing-state-machine.service';
 
 @Injectable()
 export class ListingService {
@@ -25,8 +26,8 @@ export class ListingService {
         private readonly mediaService: MediaService,
         private readonly categoryService: CategoryService,
         private readonly userService: UserService,
-        @Inject(forwardRef(() => RequestService))
-        private readonly requestService: RequestService,
+        @Inject(forwardRef(() => ListingStateMachineService))
+        private readonly listingStateMachine: ListingStateMachineService
     ){}
 
     async createListing(
@@ -153,34 +154,19 @@ export class ListingService {
         return { message: `Listing ${listingId} marcado como inactivo` };
     }
 
-    async updateListingStatusOnNewRequest(listing_id: string): Promise<ListingResponseDto>{
-        const listing = await this.listingRepository.getEntityById(listing_id);
-        if(!listing) throw new NotFoundException(`Listing con ID ${listing_id} no está disponible.`);
-        listing.status = ListingStatus.RESERVED;
-        const saved = await this.listingRepository.save(listing);
-        return saved;
-    }
-
     async updateListingStatus(listing_id: string, newStatus: ListingStatus, userId: string): Promise<ListingResponseDto> {
 
         const user = await this.userService.findUserById(userId);
 
-        const listing = await this.listingRepository.getEntityById(listing_id);
+        const updatedListing = await this.listingStateMachine.transition(listing_id, newStatus, false, user.user_id);
+        
+        return updatedListing;
+    }
 
-        if(!listing) throw new NotFoundException(`Listing con ID ${listing_id} no está disponible.`);
-
-        this.ensureUserIsOwner(user, listing);
-
+    async saveListingStatus(listing: Listing, newStatus: ListingStatus): Promise<Listing>{
+        console.log("Estoy en saveListingStatus, el status es: ", newStatus);
         listing.status = newStatus;
-        const saved = await this.listingRepository.save(listing);
-
-        if (newStatus === ListingStatus.CANCELLED) {
-            await this.requestService.cancelRequestsByListingId(listing_id);
-        } else if (newStatus === ListingStatus.EXPIRED) {
-            await this.requestService.expireRequestsByListingId(listing_id);
-        }
-
-        return saved;
+        return await this.listingRepository.saveEntity(listing);
     }
 
     private ensureUserIsOwner(user: User, listing: Listing) {

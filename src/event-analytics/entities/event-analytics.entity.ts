@@ -10,23 +10,8 @@ import {
 import { User } from '../../user/entities/user.entity';
 import { Listing } from '../../listing/entities/listing.entity';
 import { Request } from '../../request/entities/request.entity';
+import { EventType } from '../enums/event-type.enum';
 
-export enum EventType {
-  USER_SIGNED_UP = 'UserSignedUp',
-  PUBLICATION_CREATED = 'PublicationCreated',
-  VIEW = 'View',
-  SEARCH_PERFORMED = 'SearchPerformed',
-  REQUEST_SENT = 'RequestSent',
-  REQUEST_ACCEPTED = 'RequestAccepted',
-  REQUEST_REJECTED = 'RequestRejected',
-  REQUEST_CANCELLED = 'RequestCancelled',
-  REQUEST_IN_TRANSIT = 'RequestInTransit',
-  REQUEST_COMPLETED = 'RequestCompleted',
-  REQUEST_EXPIRED = 'RequestExpired',
-  CONTACT_CLICKED = 'ContactClicked',
-  DELIVERY_CONFIRMED = 'DeliveryConfirmed',
-  REPORT_SUBMITTED = 'ReportSubmitted',
-}
 
 @Entity('events_analytics')
 export class EventAnalytics {

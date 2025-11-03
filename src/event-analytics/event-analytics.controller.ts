@@ -10,10 +10,8 @@ import {
  } from '@nestjs/common';
 import { EventAnalyticsService } from './event-analytics.service';
 import { CreateEventDto } from './DTOs/create-event.dto';
-import { 
-  EventAnalytics, 
-  EventType 
-} from './entities/event-analytics.entity';
+import { EventAnalytics } from './entities/event-analytics.entity';
+import { EventType } from './enums/event-type.enum';
 import { 
   ApiTags, 
   ApiOperation, 
@@ -31,8 +29,8 @@ export class EventAnalyticsController {
   @ApiOperation({ summary: 'Crea un evento analítico' })
   @ApiResponse({ status: 201, description: 'Evento creado', type: EventAnalytics })
   @UseGuards(AccessTokenGuard)
-  async createEvent(@Body() dto: CreateEventDto): Promise<EventAnalytics> {
-    return this.eventService.createEvent(dto);
+  async createEvent(@Body() createEventDto: CreateEventDto): Promise<EventAnalytics> {
+    return this.eventService.createEvent(createEventDto);
   }
 
   @Get()

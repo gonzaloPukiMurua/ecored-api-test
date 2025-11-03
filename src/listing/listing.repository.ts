@@ -2,7 +2,8 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository} from "typeorm";
-import { Listing, ListingStatus } from "./entities/listing.entity";
+import { Listing } from "./entities/listing.entity";
+import { ListingStatus } from "./enums/listing-status.enum";
 import { ListingResponseDto } from "./DTOs/listing-response.dto";
 
 @Injectable()

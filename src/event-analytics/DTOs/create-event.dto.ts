@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 // src/event-analytics/DTOs/create-event.dto.ts
 import { IsEnum, IsOptional, IsUUID, IsObject } from 'class-validator';
-import { EventType } from '../entities/event-analytics.entity';
+import { EventType } from '../enums/event-type.enum';
 
 export class CreateEventDto {
   @IsEnum(EventType)

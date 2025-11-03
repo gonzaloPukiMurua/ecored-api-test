@@ -18,8 +18,10 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { CreateListingDto } from './DTOs/create-listing.dto';
 import { UpdateListingDto } from './DTOs/update-listing.dto';
 import { ListingResponseDto } from './DTOs/listing-response.dto';
-import { ListingService } from './listing.service';
-import { Listing, ListingStatus } from './entities/listing.entity';
+import { ListingService } from './services/listing.service';
+import { Listing} from './entities/listing.entity';
+import { ListingStatus } from './enums/listing-status.enum';
+
 import { 
     ApiConsumes, 
     ApiBody,
@@ -33,7 +35,7 @@ import type { Request } from 'express';
 import { REQUEST_USER_KEY } from 'src/auth/constants/auth.constants';
 import { JwtPayload } from 'src/auth/interfaces/jwt-payload.interface';
 import { EventAnalyticsService } from 'src/event-analytics/event-analytics.service';
-import { EventType } from 'src/event-analytics/entities/event-analytics.entity';
+import { EventType } from 'src/event-analytics/enums/event-type.enum';
 
 ApiBearerAuth()
 @Controller('listing')
@@ -69,15 +71,10 @@ export class ListingController {
     @Body() createListingDto: CreateListingDto,
     ) {
         const userPayload = request[REQUEST_USER_KEY] as JwtPayload;
-        try{  
-            if (!userPayload) {
-                return { message: 'Usuario no autenticado' };
-            }
-        }catch(error){
-            console.error(error);
-            return { message: 'Error interno del servidor' }
-        }
+        if (!userPayload) throw new UnauthorizedException('Usuario no autenticado');
+
         const listing = await this.listingService.createListing(createListingDto, userPayload.user_id, files);
+
         this.eventAnalyticsService.createEvent({
             event_type: EventType.PUBLICATION_CREATED,
             user_id: userPayload.user_id,
@@ -107,6 +104,7 @@ export class ListingController {
     ): Promise<ListingResponseDto> {
         console.log("Estoy en listing Post. Id del producto: ", id);
         const userPayload = request[REQUEST_USER_KEY] as JwtPayload;
+        if (!userPayload) throw new UnauthorizedException('Usuario no autenticado');
         await this.eventAnalyticsService.createEvent({
                 event_type: EventType.VIEW,
                 user_id: userPayload.user_id,
@@ -137,6 +135,7 @@ export class ListingController {
        
     ) {
         const userPayload = request[REQUEST_USER_KEY] as JwtPayload;
+        if (!userPayload) throw new UnauthorizedException('Usuario no autenticado');
         console.log("Estoy en listing GET")
         const listings = await this.listingService.getPublicListings(search ?? '', category, page, limit, order);
         console.log("Esto devuelve GET: ", listings);
@@ -164,6 +163,7 @@ export class ListingController {
     async getMyListings(@Req() request: Request) {
         console.log("Estoy en listing/mine GET")
         const userPayload = request[REQUEST_USER_KEY] as JwtPayload;
+        if (!userPayload) throw new UnauthorizedException('Usuario no autenticado');
         return await this.listingService.getListingsByOwnerId(userPayload.user_id);
     }
 
@@ -173,6 +173,7 @@ export class ListingController {
     @ApiOperation({ summary: 'Obtiene publicaciones del usuario autenticado con estado comprometido/en tránsito' })
     async getMyCommittedListings(@Req() request: Request) {
         const userPayload = request[REQUEST_USER_KEY] as JwtPayload;
+        if (!userPayload) throw new UnauthorizedException('Usuario no autenticado');
         return await this.listingService.getListingsByOwnerAndStatus(userPayload.user_id, [ListingStatus.COMMITTED, ListingStatus.IN_TRANSIT]);
     }
 
@@ -188,6 +189,7 @@ export class ListingController {
     ): Promise<ListingResponseDto> {
         console.log("Estoy en listing PUT update id");
         const userPayload = request[REQUEST_USER_KEY] as JwtPayload;
+        if (!userPayload) throw new UnauthorizedException('Usuario no autenticado');
         console.log(userPayload);
         return await this.listingService.updateListing(listing_id, updateDto, userPayload.user_id);
     }
@@ -199,6 +201,7 @@ export class ListingController {
     async softDeleteListing(@Param('id') id: string, request: Request) {
         console.log("Estoy en listing PUT soft delete");
         const userPayload = request[REQUEST_USER_KEY] as JwtPayload;
+        if (!userPayload) throw new UnauthorizedException('Usuario no autenticado');
         return await this.listingService.softDeleteListing(id, userPayload.user_id);
     }
 

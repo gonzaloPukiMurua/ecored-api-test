@@ -1,7 +1,8 @@
 /* eslint-disable prettier/prettier */
 import { Injectable } from "@nestjs/common";
 import { InjectRepository, } from "@nestjs/typeorm";
-import { EventAnalytics, EventType } from "./entities/event-analytics.entity";
+import { EventAnalytics } from "./entities/event-analytics.entity";
+import { EventType } from "./enums/event-type.enum";
 import { Repository, SelectQueryBuilder  } from "typeorm";
 @Injectable()
 export class EventAnalyticsRepository {

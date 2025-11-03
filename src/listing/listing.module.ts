@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { forwardRef, Module } from '@nestjs/common';
 import { ListingController } from './listing.controller';
-import { ListingService } from './listing.service';
+import { ListingService } from './services/listing.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Listing } from './entities/listing.entity';
 import { MediaModule } from 'src/media/media.module';
@@ -13,6 +13,7 @@ import { ConfigModule } from '@nestjs/config';
 import jwtConfig from 'src/config/jwt.config';
 import { RequestModule } from 'src/request/request.module';
 import { EventAnalyticsModule } from 'src/event-analytics/event-analytics.module';
+import { ListingStateMachineService } from './services/listing-state-machine.service';
 
 @Module({
   imports: [
@@ -26,7 +27,7 @@ import { EventAnalyticsModule } from 'src/event-analytics/event-analytics.module
     ConfigModule.forFeature(jwtConfig),
   ],
   controllers: [ListingController],
-  providers: [ListingService, ListingRepository],
-  exports: [ListingService, ListingRepository]
+  providers: [ListingService, ListingRepository, ListingStateMachineService],
+  exports: [ListingService, ListingRepository, ListingStateMachineService]
 })
 export class ListingModule {}

@@ -13,27 +13,9 @@ import {
 import { User } from '../../user/entities/user.entity';
 import { Category } from '../../category/entities/category.entity';
 import { ListingPhoto } from '../../media/entities/listing-photo.entity';
+import { ListingStatus } from '../enums/listing-status.enum';
+import { ItemCondition } from '../enums/item-condition.enum';
 import { Request } from '../../request/entities/request.entity';
-
-export enum ItemCondition {
-  NEW = 'nuevo',
-  LIKE_NEW = 'como_nuevo',
-  USABLE = 'usable',
-  PARTS = 'repuestos',
-}
-
-export enum ListingStatus {
-  DRAFT = 'draft',
-  PUBLISHED = 'published',
-  RESERVED = 'reserved',
-  COMMITTED = 'committed',
-  IN_TRANSIT = 'in_transit',
-  DELIVERED = 'delivered',
-  PAUSED = 'paused',
-  CANCELLED = 'cancelled',
-  BLOCKED = 'blocked',
-  EXPIRED = 'expired',
-} 
 
 @Entity('listings')
 export class Listing {

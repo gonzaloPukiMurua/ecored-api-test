@@ -2,7 +2,8 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, FindOptionsWhere } from "typeorm";
-import { Request, RequestStatus } from "./entities/request.entity";
+import { Request } from "./entities/request.entity";
+import { RequestStatus } from "./enums/request-status.enum";
 
 @Injectable()
 export class RequestRepository {
@@ -19,7 +20,7 @@ export class RequestRepository {
   async findById(id: string): Promise<Request | null | undefined> {
     return this.requestRepository.findOne({
       where: { request_id: id },
-      relations: ['listing', 'requester', 'delivery'],
+      relations: ['listing', 'requester', 'publisher', 'delivery'],
     });
   }
 
@@ -28,7 +29,7 @@ export class RequestRepository {
     return this.requestRepository.save(request);
   }
 
-  async findByUserId(
+  async findByRequesterId(
     user_id: string,
     page = 1,
     limit = 10,
@@ -39,7 +40,6 @@ export class RequestRepository {
       requester: { user_id },
     };
 
-    // Si se pasa un estado, filtramos también por status
     if (status) {
       where.status = status;
     }
@@ -90,4 +90,9 @@ export class RequestRepository {
       relations: ['listing', 'requester', 'publisher'],
     });
   }
+
+  async save(request: Request): Promise<Request>{
+    return await this.requestRepository.save(request);
+  }
+
 }

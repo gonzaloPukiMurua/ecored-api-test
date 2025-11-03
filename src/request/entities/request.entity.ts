@@ -14,16 +14,7 @@ import {
 import { Listing } from '../../listing/entities/listing.entity';
 import { User } from '../../user/entities/user.entity';
 import { Delivery } from '../../delivery/entities/delivery.entity';
-
-export enum RequestStatus {
-  PENDING = 'pending',
-  ACCEPTED = 'accepted',
-  REJECTED = 'rejected',
-  CANCELLED = 'cancelled',
-  IN_TRANSIT = 'in_transit',
-  COMPLETED = 'completed',
-  EXPIRED = 'expired',
-} 
+import { RequestStatus } from '../enums/request-status.enum';
 
 @Entity('requests')
 export class Request {
@@ -34,12 +25,10 @@ export class Request {
   @JoinColumn({ name: 'listing_id', referencedColumnName: 'listing_id' })
   listing!: Listing;
 
-  // Usuario que hizo la solicitud
   @ManyToOne(() => User, (user) => user.requests, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'requester_id', referencedColumnName: 'user_id' })
   requester!: User;
 
-  // Usuario dueño del listing
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'publisher_id', referencedColumnName: 'user_id' })
   publisher!: User;
@@ -57,5 +46,5 @@ export class Request {
   delivery?: Delivery;
 
   @Column({ default: true })
-  active!: boolean; // opcional, según tus necesidades
+  active!: boolean;
 }

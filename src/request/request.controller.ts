@@ -13,9 +13,10 @@ import {
   Get,
   Query
  } from '@nestjs/common';
-import { RequestService } from './request.service';
+import { RequestService } from './services/request.service';
 import { CreateRequestDto } from './DTOs/create-request.dto';
-import { Request as RequestEntity, RequestStatus } from './entities/request.entity';
+import { Request as RequestEntity } from './entities/request.entity';
+import { RequestStatus } from './enums/request-status.enum';
 import { 
   ApiOperation, 
   ApiResponse, 
@@ -28,6 +29,7 @@ import { REQUEST_USER_KEY } from 'src/auth/constants/auth.constants';
 import { JwtPayload } from 'src/auth/interfaces/jwt-payload.interface';
 import { mapRequestStatusToEventType } from 'src/event-analytics/event-type.mapper';
 import { EventAnalyticsService } from 'src/event-analytics/event-analytics.service';
+import { UpdateRequestDto } from './DTOs/update-request.dto';
 
 @ApiTags('Requests')
 @Controller('request')
@@ -47,7 +49,6 @@ export class RequestController {
   ): Promise<RequestEntity> {
     const userPayload = request[REQUEST_USER_KEY] as JwtPayload;
     if (!userPayload) throw new UnauthorizedException('Usuario no autenticado');
-
     try {
       return await this.requestService.createRequest(createRequestDto, userPayload.user_id);
     } catch (error) {
@@ -63,13 +64,17 @@ export class RequestController {
   async updateRequest(
     @Req() request: Request,
     @Param('id') request_id: string,
-    @Body() updateRequestDto: RequestStatus,
+    @Body() updateRequestDto: UpdateRequestDto,
   ): Promise<RequestEntity> {
+
     const userPayload = request[REQUEST_USER_KEY] as JwtPayload;
     if (!userPayload) throw new UnauthorizedException('Usuario no autenticado');
+    const {status} = updateRequestDto;
     try {
-      const updatedRequest = await this.requestService.updateStatus(request_id, updateRequestDto);
-      const eventType = mapRequestStatusToEventType(updateRequestDto)
+      const updatedRequest = await this.requestService.updateStatus(request_id, userPayload.user_id, status);
+
+      const eventType = mapRequestStatusToEventType(status);
+      
       if(eventType){
         await this.eventAnalyticsService.createEvent({
           event_type: eventType,
