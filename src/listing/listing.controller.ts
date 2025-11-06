@@ -17,7 +17,6 @@ import {
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { CreateListingDto } from './DTOs/create-listing.dto';
 import { UpdateListingDto } from './DTOs/update-listing.dto';
-import { ListingResponseDto } from './DTOs/listing-response.dto';
 import { ListingService } from './services/listing.service';
 import { Listing} from './entities/listing.entity';
 import { ListingStatus } from './enums/listing-status.enum';
@@ -101,7 +100,7 @@ export class ListingController {
     async getListingById(
         @Param('id') id: string,
         @Req() request: Request
-    ): Promise<ListingResponseDto> {
+    ): Promise<Listing> {
         console.log("Estoy en listing Post. Id del producto: ", id);
         const userPayload = request[REQUEST_USER_KEY] as JwtPayload;
         if (!userPayload) throw new UnauthorizedException('Usuario no autenticado');
@@ -186,11 +185,9 @@ export class ListingController {
         @Param('id') listing_id: string,
         @Body() updateDto: UpdateListingDto,
         @Req() request: Request
-    ): Promise<ListingResponseDto> {
-        console.log("Estoy en listing PUT update id");
+    ): Promise<Listing> {
         const userPayload = request[REQUEST_USER_KEY] as JwtPayload;
         if (!userPayload) throw new UnauthorizedException('Usuario no autenticado');
-        console.log(userPayload);
         return await this.listingService.updateListing(listing_id, updateDto, userPayload.user_id);
     }
 

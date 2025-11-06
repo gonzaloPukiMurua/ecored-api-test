@@ -31,39 +31,42 @@ export class ListingStateMachineService {
         user_id?: string, 
     ): Promise<Listing>{
         const listing = await this.listingService.getListingEntityById(listing_id);
-        console.log("Este es el listing: ", listing);
         if(requestStatusChange){
-            console.log("requestStatusChange: ", requestStatusChange);
-            console.log("newStatus: ", newStatus)
             switch (newStatus){
                 case ListingStatus.RESERVED:
+                    console.log("listing status: ", listing.status)
                     if(listing.status !== ListingStatus.PUBLISHED){
                         throw new UnauthorizedException(`Solo se puede reservar un producto publicado.`)
                     }
                     break;
                 case ListingStatus.CANCELLED:
+                    console.log("listing status: ", listing.status)
                     if(listing.status !== ListingStatus.IN_TRANSIT){
                         throw new UnauthorizedException(`Solo se puede reservar un producto publicado.`)
                     }
                     break;
                 case ListingStatus.COMMITTED:
+                    console.log("listing status: ", listing.status)
                     if(listing.status !== ListingStatus.RESERVED){
                         throw new UnauthorizedException(`Solo se puede comprometer un producto reservado.`)
                     }
                     console.log("Estoy en COMMITED del switch case");
                     break;
                 case ListingStatus.IN_TRANSIT:
+                    console.log("listing status: ", listing.status)
                     if(listing.status !== ListingStatus.COMMITTED){
                         throw new UnauthorizedException(`Solo se puede despachar un producto comprometido.`);
                     }
                     break;
                 case ListingStatus.DELIVERED:{
+                    console.log("listing status: ", listing.status)
                     if(listing.status !== ListingStatus.IN_TRANSIT){
                         throw new UnauthorizedException(`Solo se puede entregar un producto en transito.`);
                     }
                     break;
                 }
                 case ListingStatus.PUBLISHED:{
+                    console.log("listing status: ", listing.status)
                     break;
                 }
                 default: 
@@ -85,7 +88,7 @@ export class ListingStateMachineService {
                 case ListingStatus.PUBLISHED:
                     break;
                 default:
-                    throw new BadRequestException('No se puede cambiar directamnete este estado por el publicante');
+                    throw new BadRequestException('No se puede cambiar directamente este estado por el publicante');
             }
         }else{
             throw new BadRequestException('No se puede realizar dicha operación.')

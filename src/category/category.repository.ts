@@ -27,28 +27,43 @@ export class CategoryRepository{
         });
     }
 
-    async findAll(
-        search: string,
-        page = 1,
-        limit = 10,
-        order: 'ASC' | 'DESC' = 'ASC',
-    ): Promise<{data: Category[], total: number, page: number, limit: number}>{
-        console.log("Estoy en repo")
-        const [data, total] = await this.categoryRepository.findAndCount({
-            where: search ? { name: ILike(`%${search}%`)} : {},
-            order: { created_at: order},
-            skip: (page - 1) * limit,
-            take: limit,
-            relations: ['parent', 'children'],
-        });
+async findAll(
+  search: string,
+  page = 1,
+  limit = 10,
+  order: 'ASC' | 'DESC' = 'ASC',
+): Promise<{ data: (Category & { listingCount: number })[]; total: number; page: number; limit: number }> {
+  const query = this.categoryRepository
+    .createQueryBuilder('category')
+    .leftJoin('category.parent', 'parent')
+    .leftJoin('category.children', 'children')
+    .leftJoin('category.listings', 'listing')
+    .loadRelationCountAndMap('category.listingCount', 'category.listings')
+    .orderBy('category.created_at', order)
+    .skip((page - 1) * limit)
+    .take(limit);
 
-        return {
-            data, 
-            total,
-            page,
-            limit
-        };
-    }
+  if (search) {
+    query.where('category.name ILIKE :search', { search: `%${search}%` });
+  }
+
+  const [data, total] = await query.getManyAndCount();
+
+  // 👉 Convertimos el resultado para incluir listingCount en el tipo
+  const mappedData = data.map((category) => ({
+    ...category,
+    listingCount: (category as any).listingCount ?? 0, // aseguramos el campo
+  }));
+
+  return {
+    data: mappedData,
+    total,
+    page,
+    limit,
+  };
+}
+
+
 
     // ✅ Actualizar categoría
     async updateCategory(id: string, data: Partial<Category>): Promise<Category> {

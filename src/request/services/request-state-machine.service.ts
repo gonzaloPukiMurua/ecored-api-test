@@ -26,9 +26,9 @@ export class RequestStateMachineService {
     listingStatusChange: boolean,
     user_id?: string, 
   ): Promise<Request> {
-    console.log("Estoy en la machina de estado de request, newStatus: ", newStatus);
+
     if(listingStatusChange){
-      console.log("Estoy en el if listingStatusChange, vengo de un cambio de estado de listing")
+
       switch (newStatus){
         case RequestStatus.CANCELLED:
           if(request.listing.status === ListingStatus.IN_TRANSIT){

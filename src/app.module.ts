@@ -35,6 +35,18 @@ import { ServeStaticModule } from '@nestjs/serve-static';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
+        const dbUrl = configService.get<string>('NEON_DB_URL');
+        if(dbUrl){
+          return {
+            type: 'postgres',
+            url: dbUrl,
+            ssl: {
+              rejectUnauthorized: false,
+            },
+            autoLoadEntities: true,
+            synchronize: false,
+          };
+        }
           const caPath = configService.get<string>('SSL_CA_CERT');
           console.log("ca.pem path: ", caPath);
           const sslEnabled = configService.get<string>('DB_SSL') === 'true';

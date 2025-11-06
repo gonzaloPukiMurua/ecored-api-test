@@ -12,6 +12,7 @@ import { ConfigModule } from '@nestjs/config';
 import jwtConfig from 'src/config/jwt.config';
 import { EventAnalyticsModule } from 'src/event-analytics/event-analytics.module';
 import { RequestStateMachineService } from './services/request-state-machine.service';
+import { MailModule } from 'src/mail/mail.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { RequestStateMachineService } from './services/request-state-machine.ser
     forwardRef(() => EventAnalyticsModule),
     JwtModule,
     ConfigModule.forFeature(jwtConfig),
+    MailModule
   ],
   controllers: [RequestController],
   providers: [RequestService, RequestRepository, RequestStateMachineService],

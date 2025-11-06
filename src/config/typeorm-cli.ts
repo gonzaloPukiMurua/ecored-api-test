@@ -3,33 +3,56 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { DataSource } from 'typeorm';
 import * as path from 'path';
-import * as fs from 'fs'; // <-- AGREGAR: Importar 'fs'
+import * as fs from 'fs';
 
-const caPath = process.env.SSL_CA_CERT
-  ? path.resolve(process.env.SSL_CA_CERT)
-  : undefined;
+console.log('🔧 Inicializando TypeORM CLI configuration...');
 
-// Lógica de lectura de certificado
-const sslCa = caPath && fs.existsSync(caPath) 
-    ? fs.readFileSync(caPath).toString() 
+const dbUrl = process.env.DB_URL;
+
+let dataSourceOptions;
+
+if (dbUrl) {
+  console.log('🌐 Usando conexión por DB_URL');
+  dataSourceOptions = {
+    type: 'postgres',
+    url: dbUrl,
+    ssl: {
+      rejectUnauthorized: false, // requerido para Neon
+    },
+    entities: [path.join(__dirname, '../**/*.entity.{ts,js}')],
+    migrations: [path.join(__dirname, '../migrations/*.{ts,js}')],
+    synchronize: false,
+  };
+} else {
+  console.log('📦 Usando configuración manual (HOST, PORT, USER...)');
+
+  const caPath = process.env.SSL_CA_CERT
+    ? path.resolve(process.env.SSL_CA_CERT)
     : undefined;
 
-// Lógica de configuración SSL unificada
-const sslConfig = sslCa
-    ? { rejectUnauthorized: true, ca: sslCa }
-    : process.env.DB_SSL === 'true' // Si no hay CA, pero DB_SSL está activo
-    ? { rejectUnauthorized: false }
-    : undefined; // Si no hay SSL
+  const sslCa =
+    caPath && fs.existsSync(caPath)
+      ? fs.readFileSync(caPath).toString()
+      : undefined;
 
-export const AppDataSource = new DataSource({
-  type: 'postgres',
-  host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT),
-  username: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  ssl: sslConfig, // <-- USAR LA CONFIGURACIÓN UNIFICADA
-  entities: [path.join(__dirname, '../**/*.entity.{ts,js}')],
-  migrations: [path.join(__dirname, '../migrations/*.{ts,js}')],
-  synchronize: false,
-});
+  const sslConfig = sslCa
+    ? { rejectUnauthorized: true, ca: sslCa }
+    : process.env.DB_SSL === 'true'
+    ? { rejectUnauthorized: false }
+    : undefined;
+
+  dataSourceOptions = {
+    type: 'postgres',
+    host: process.env.DB_HOST,
+    port: Number(process.env.DB_PORT),
+    username: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    ssl: sslConfig,
+    entities: [path.join(__dirname, '../**/*.entity.{ts,js}')],
+    migrations: [path.join(__dirname, '../migrations/*.{ts,js}')],
+    synchronize: false,
+  };
+}
+
+export const AppDataSource = new DataSource(dataSourceOptions);

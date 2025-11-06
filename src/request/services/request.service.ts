@@ -7,6 +7,7 @@ import { RequestStatus } from '../enums/request-status.enum';
 import { UserService } from 'src/user/user.service';
 import { ListingService } from 'src/listing/services/listing.service';
 import { RequestStateMachineService } from './request-state-machine.service';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class RequestService {
@@ -17,6 +18,7 @@ export class RequestService {
     @Inject(forwardRef(() => RequestStateMachineService)) 
     private readonly requestStateService: RequestStateMachineService,
     private readonly userService: UserService,
+    private readonly mailService: MailService,
   ) {}
 
   async getRequestById(id: string): Promise<RequestEntity | null | undefined> {
@@ -37,10 +39,8 @@ export class RequestService {
 
     const listing = await this.listingService.getListingEntityById(createDto.listing_id);
     const requester = await this.userService.findUserById(requester_id);
-    console.log("Esta es el listing por el cual se realiza la petición: ", listing);
     const publisher = listing.owner;
-    console.log("El publisher es: ", publisher);
-    console.log("El requester es: ", requester)
+
     if (!publisher) throw new NotFoundException(`El listing con ID ${listing.listing_id} no tiene un owner válido`);
     const request = await this.requestRepository.createRequest({
       listing,
@@ -51,6 +51,7 @@ export class RequestService {
 
     const updatedListing = await this.requestStateService.transition(request, RequestStatus.PENDING, false, requester.user_id);
     console.log("listing actualizado: ", updatedListing);
+    await this.mailService.sendRequestCreatedMail(listing.owner.email, listing.title, request.requester.name)
     return request;
   }
 
@@ -61,15 +62,13 @@ export class RequestService {
 
     const user = await this.userService.findUserById(user_id);
     if(!user) throw new NotFoundException(`User con id ${requestId} no encontrado`);
-    console.log(newStatus)
-    return await this.requestStateService.transition(request, newStatus, false, user.user_id);
 
+    const updatedRequest = await this.requestStateService.transition(request, newStatus, false, user.user_id);
+    await this.mailService.sendRequestStatusChangedMail(updatedRequest.publisher.email, updatedRequest.requester.email, updatedRequest.listing.title, updatedRequest.status)
+    return updatedRequest
   }
 
   async saveStatusUpdate(request: RequestEntity, newStatus: RequestStatus): Promise<RequestEntity>{
-    console.log("Estoy en saveStatusUpdate de request");
-    console.log("status: ", newStatus);
-    console.log("Request es: ", request);
     request.status = newStatus;
     return await this.requestRepository.save(request);
   }

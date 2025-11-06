@@ -76,12 +76,10 @@ export class ListingService {
         return listing;
     }
 
-    async getPublishedListingById(id: string, user_id: string): Promise<ListingResponseDto>{
+    async getPublishedListingById(id: string, user_id: string): Promise<Listing>{
         const user = await this.userService.findUserById(user_id);
-        const listing = await this.getListingById(id);
+        const listing = await this.getListingEntityById(id);
 
-        console.log("Usuario logueado: ", user.user_id);
-        console.log("Listing: ", listing.owner.user_id);
         if(listing.status !== ListingStatus.PUBLISHED && user.user_id !== listing.owner.user_id){
             console.log("Listing no publico.");
             throw new NotFoundException(`Listing con ID ${id} no está disponible públicamente`);
@@ -128,7 +126,7 @@ export class ListingService {
         return await this.listingRepository.findByOwnerAndStatuses(ownerId, statuses);
     }
 
-    async updateListing(listing_id: string, updateDto: UpdateListingDto, user_id: string): Promise<ListingResponseDto> {
+    async updateListing(listing_id: string, updateDto: UpdateListingDto, user_id: string): Promise<Listing> {
 
         const user = await this.userService.findUserById(user_id);
 
@@ -137,7 +135,7 @@ export class ListingService {
         this.ensureUserIsOwner(user, listing);
 
         Object.assign(listing, updateDto);
-        return await this.listingRepository.save(listing);
+        return await this.listingRepository.saveEntity(listing);
     }
 
     async softDeleteListing(listingId: string, user_id: string): Promise<{ message: string }> {
