@@ -13,6 +13,7 @@ import jwtConfig from 'src/config/jwt.config';
 import { EventAnalyticsModule } from 'src/event-analytics/event-analytics.module';
 import { RequestStateMachineService } from './services/request-state-machine.service';
 import { MailModule } from 'src/mail/mail.module';
+import { EcoPointsModule } from 'src/ecopoints/ecopoints.module';
 
 @Module({
   imports: [
@@ -22,7 +23,8 @@ import { MailModule } from 'src/mail/mail.module';
     forwardRef(() => EventAnalyticsModule),
     JwtModule,
     ConfigModule.forFeature(jwtConfig),
-    MailModule
+    MailModule,
+    EcoPointsModule,
   ],
   controllers: [RequestController],
   providers: [RequestService, RequestRepository, RequestStateMachineService],

@@ -30,13 +30,15 @@ import { JwtPayload } from 'src/auth/interfaces/jwt-payload.interface';
 import { mapRequestStatusToEventType } from 'src/event-analytics/event-type.mapper';
 import { EventAnalyticsService } from 'src/event-analytics/event-analytics.service';
 import { UpdateRequestDto } from './DTOs/update-request.dto';
+import { EcoPointsService } from 'src/ecopoints/services/ecopoints.service';
 
 @ApiTags('Requests')
 @Controller('request')
 export class RequestController {
   constructor(
     private readonly requestService: RequestService,
-    private readonly eventAnalyticsService: EventAnalyticsService
+    private readonly eventAnalyticsService: EventAnalyticsService,
+    private readonly ecopointsService: EcoPointsService
   ) {}
 
   @Post()
@@ -74,6 +76,19 @@ export class RequestController {
       const updatedRequest = await this.requestService.updateStatus(request_id, userPayload.user_id, status);
 
       const eventType = mapRequestStatusToEventType(status);
+      console.log("Este es el status de la request: ", updatedRequest.status);
+      if(updatedRequest.status === RequestStatus.COMPLETED){
+        try {
+            await this.ecopointsService.registerAction({
+                user_id: userPayload.user_id,
+                action_name: 'Solicitar', // Nombre exacto de la acción correspondiente
+                category_id: updatedRequest.listing.category.category_id, // obtiene factor según categoría
+                extra_data: { listing_id: updatedRequest.listing.listing_id },
+            });
+        } catch (error) {
+            console.error('❌ Error registrando EcoPoints PUBLICAR_PRODUCTO:', error);
+        }
+      }
       
       if(eventType){
         await this.eventAnalyticsService.createEvent({
