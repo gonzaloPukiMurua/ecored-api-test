@@ -11,6 +11,7 @@ import { AUTH_TYPE_KEY } from '../constants/auth.constants';
 import { AccessTokenGuard } from './access-token.guard';
 import { AuthType } from '../enums/auth-type.enum';
 import { Reflector } from '@nestjs/core';
+import { OptionalAuthGuard } from './optional-auth.guard';
 
 @Injectable()
 export class AuthenticationGuard implements CanActivate {
@@ -20,10 +21,13 @@ export class AuthenticationGuard implements CanActivate {
     private readonly reflector: Reflector,
     @Inject(AccessTokenGuard)
     private readonly accessTokenGuard: AccessTokenGuard,
+    @Inject(OptionalAuthGuard)
+    private readonly optionalAuthGuard: OptionalAuthGuard
   ) {
     // ✅ ahora sí podés usar this.accessTokenGuard
     this.authTypeGuardMap = {
       [AuthType.Bearer]: this.accessTokenGuard,
+      [AuthType.Optional]: this.optionalAuthGuard,
       [AuthType.None]: { canActivate: () => true },
     };
   }

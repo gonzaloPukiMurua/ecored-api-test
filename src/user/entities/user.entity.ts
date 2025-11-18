@@ -16,6 +16,7 @@ import { Request } from '../../request/entities/request.entity';
 import { Report } from '../../report/entities/report.entity';
 import { EventAnalytics } from '../../event-analytics/entities/event-analytics.entity';
 import { Address } from 'src/address/entities/address.entity';
+import { EcopointUserHistory } from 'src/ecopoints/entities/ecopoint-user-history.entity';
 import { UserRole } from '../enums/user-role.enum';
 
 @Entity('users')
@@ -68,4 +69,7 @@ export class User {
 
   @OneToMany(() => EventAnalytics, (event) => event.user)
   events!: EventAnalytics[];
+
+  @OneToMany(() => EcopointUserHistory, (history) => history.user)
+  ecopointHistory!: EcopointUserHistory[];
 }

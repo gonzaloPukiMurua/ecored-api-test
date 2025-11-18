@@ -14,6 +14,7 @@ import jwtConfig from 'src/config/jwt.config';
 import { AccessTokenGuard } from './guards/access-token.guard';
 import { AuthenticationGuard } from './guards/authentication.guard';
 import { AddressModule } from 'src/address/address.module';
+import { OptionalAuthGuard } from './guards/optional-auth.guard';
 
 @Module({
   imports: [
@@ -30,8 +31,14 @@ import { AddressModule } from 'src/address/address.module';
     GenerateTokensProvider,
     AuthenticationGuard,
     AccessTokenGuard,
+    OptionalAuthGuard
   ],
   controllers: [AuthController],
-  exports: [AuthService, JwtModule, AccessTokenGuard]
+  exports: [
+    AuthService, 
+    JwtModule, 
+    AccessTokenGuard,
+    OptionalAuthGuard
+  ]
 })
 export class AuthModule {}

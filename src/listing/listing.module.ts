@@ -14,6 +14,7 @@ import jwtConfig from 'src/config/jwt.config';
 import { RequestModule } from 'src/request/request.module';
 import { EventAnalyticsModule } from 'src/event-analytics/event-analytics.module';
 import { ListingStateMachineService } from './services/listing-state-machine.service';
+import { EcoPointsModule } from 'src/ecopoints/ecopoints.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { ListingStateMachineService } from './services/listing-state-machine.ser
     CategoryModule,
     UserModule,
     JwtModule,
+    EcoPointsModule,
     forwardRef(() => EventAnalyticsModule),
     forwardRef(() => RequestModule),
     ConfigModule.forFeature(jwtConfig),

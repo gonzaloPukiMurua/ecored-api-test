@@ -1,9 +1,9 @@
 /* eslint-disable prettier/prettier */
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CategoryRepository } from './category.repository';
-import { CreateCategoryDto } from './DTOs/create-category.dto';
-import { UpdateCategoryDto } from './DTOs/update-category.dto';
-import { Category } from './entities/category.entity';
+import { CategoryRepository } from '../category.repository';
+import { CreateCategoryDto } from '../DTOs/create-category.dto';
+import { UpdateCategoryDto } from '../DTOs/update-category.dto';
+import { Category } from '../entities/category.entity';
 @Injectable()
 export class CategoryService {
     constructor(private readonly categoryRepository: CategoryRepository){}
@@ -44,6 +44,10 @@ export class CategoryService {
         return await this.categoryRepository.findAll(search, page, limit, order);
     }
 
+    async findByNameExact(name: string) {
+        return this.categoryRepository.findByNameExact(name);
+    }
+
     // ✅ Actualizar categoría
     async updateCategory(id: string, updateDto: UpdateCategoryDto): Promise<Category> {
         const category = await this.categoryRepository.findById(id);
@@ -58,4 +62,21 @@ export class CategoryService {
         return await this.categoryRepository.deactivateCategory(id);
     }
 
+    async getParentCategories(): Promise<Category[]> {
+        return await this.categoryRepository.findParents();
+    }
+
+    async getAllSubcategories(): Promise<Category[]> {
+        return await this.categoryRepository.findSubcategories();
+    }
+
+    async getSubcategoriesOf(parentId: string): Promise<Category[]> {
+        const parent = await this.categoryRepository.findById(parentId);
+
+        if (!parent) {
+            throw new NotFoundException(`Categoría padre con ID ${parentId} no encontrada`);
+        }
+
+        return await this.categoryRepository.findSubcategoriesByParent(parentId);
+    }
 }

@@ -7,7 +7,7 @@ import * as fs from 'fs';
 
 console.log('🔧 Inicializando TypeORM CLI configuration...');
 
-const dbUrl = process.env.DB_URL;
+const dbUrl = process.env.NEON_DB_URL;
 
 let dataSourceOptions;
 

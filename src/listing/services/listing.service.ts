@@ -13,7 +13,7 @@ import { MediaService } from 'src/media/media.service';
 import { ListingPhoto } from 'src/media/entities/listing-photo.entity';
 import { Listing } from '../entities/listing.entity';
 import { ListingStatus } from '../enums/listing-status.enum';
-import { CategoryService } from 'src/category/category.service';
+import { CategoryService } from 'src/category/services/category.service';
 import { UserService } from 'src/user/user.service';
 import { User } from 'src/user/entities/user.entity';
 import { ListingResponseDto } from '../DTOs/listing-response.dto';

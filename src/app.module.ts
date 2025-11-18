@@ -25,6 +25,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { AuthenticationGuard } from './auth/guards/authentication.guard';
 import { AddressModule } from './address/address.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { EcoPointsModule } from './ecopoints/ecopoints.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -87,7 +88,8 @@ import { ServeStaticModule } from '@nestjs/serve-static';
     DeliveryModule, 
     ReportModule, 
     EventAnalyticsModule,
-    AddressModule
+    AddressModule,
+    EcoPointsModule
   ],
   controllers: [AppController],
   providers: [

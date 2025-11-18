@@ -35,13 +35,17 @@ import { REQUEST_USER_KEY } from 'src/auth/constants/auth.constants';
 import { JwtPayload } from 'src/auth/interfaces/jwt-payload.interface';
 import { EventAnalyticsService } from 'src/event-analytics/event-analytics.service';
 import { EventType } from 'src/event-analytics/enums/event-type.enum';
+import { Auth } from 'src/auth/decorators/auth.decorator';
+import { AuthType } from 'src/auth/enums/auth-type.enum';
+import { EcoPointsService } from 'src/ecopoints/services/ecopoints.service';
 
 ApiBearerAuth()
 @Controller('listing')
 export class ListingController {
     constructor(
         private readonly listingService: ListingService,
-        private readonly eventAnalyticsService: EventAnalyticsService
+        private readonly eventAnalyticsService: EventAnalyticsService,
+        private readonly ecopointsService: EcoPointsService
     ){}
 
     @Post()
@@ -73,6 +77,17 @@ export class ListingController {
         if (!userPayload) throw new UnauthorizedException('Usuario no autenticado');
 
         const listing = await this.listingService.createListing(createListingDto, userPayload.user_id, files);
+        console.log("Category Id: ", listing.category.category_id)
+        try {
+            await this.ecopointsService.registerAction({
+                user_id: userPayload.user_id,
+                action_name: 'Publicar', // Nombre exacto de la acción correspondiente
+                category_id: listing.category.category_id, // obtiene factor según categoría
+                extra_data: { listing_id: listing.listing_id },
+            });
+        } catch (error) {
+            console.error('❌ Error registrando EcoPoints PUBLICAR_PRODUCTO:', error);
+        }
 
         this.eventAnalyticsService.createEvent({
             event_type: EventType.PUBLICATION_CREATED,
@@ -116,7 +131,7 @@ export class ListingController {
     }
 
     @Get()
-    @UseGuards(AccessTokenGuard)
+    @Auth(AuthType.Optional)
     @ApiOperation({ summary: 'Obtiene listados con filtros, búsqueda, orden y paginación' })
     @ApiQuery({ name: 'search', required: false, description: 'Filtra por título o descripción' })
     @ApiQuery({ name: 'category', required: false, description: 'Filtra por categoría' })
@@ -133,24 +148,25 @@ export class ListingController {
         @Query('order') order: 'ASC' | 'DESC' = 'ASC',
        
     ) {
-        const userPayload = request[REQUEST_USER_KEY] as JwtPayload;
-        if (!userPayload) throw new UnauthorizedException('Usuario no autenticado');
+        const userPayload = request[REQUEST_USER_KEY] as JwtPayload | undefined;
+
         console.log("Estoy en listing GET")
         const listings = await this.listingService.getPublicListings(search ?? '', category, page, limit, order);
-        console.log("Esto devuelve GET: ", listings);
-
-        await this.eventAnalyticsService.createEvent({
-        event_type: EventType.SEARCH_PERFORMED,
-        user_id: userPayload?.user_id,
-        payload: {
-            search: search ?? null,
-            category: category ?? null,
-            page,
-            limit,
-            order,
-            total_results: listings.total,
-            },
-        });
+    
+        if(userPayload){
+            await this.eventAnalyticsService.createEvent({
+            event_type: EventType.SEARCH_PERFORMED,
+            user_id: userPayload?.user_id,
+            payload: {
+                search: search ?? null,
+                category: category ?? null,
+                page,
+                limit,
+                order,
+                total_results: listings.total,
+                },
+            });
+        }
 
         return listings;
     }
@@ -195,7 +211,10 @@ export class ListingController {
     @Put('delete/:id')
     @UseGuards(AccessTokenGuard)
     @ApiOperation({ summary: 'Borrado lógico de un listing por ID' })
-    async softDeleteListing(@Param('id') id: string, request: Request) {
+    async softDeleteListing(
+        @Param('id') id: string, 
+        @Req() request: Request
+    ) {
         console.log("Estoy en listing PUT soft delete");
         const userPayload = request[REQUEST_USER_KEY] as JwtPayload;
         if (!userPayload) throw new UnauthorizedException('Usuario no autenticado');

@@ -1,7 +1,8 @@
 /* eslint-disable prettier/prettier */
 import { PartialType, ApiProperty } from '@nestjs/swagger';
 import { CreateCategoryDto } from './create-category.dto';
-import { IsUUID } from 'class-validator';
+import { IsUUID, IsOptional, IsEnum } from 'class-validator';
+import { CategoryBlock } from '../enums/category-block.enum';
 
 export class UpdateCategoryDto extends PartialType(CreateCategoryDto) {
   @ApiProperty({
@@ -10,4 +11,25 @@ export class UpdateCategoryDto extends PartialType(CreateCategoryDto) {
   })
   @IsUUID()
   category_id!: string;
+
+  @ApiProperty({
+    description: 'Bloque al que pertenece la categoría',
+    enum: CategoryBlock,
+    example: CategoryBlock.PRODUCTOS_FUNCIONALES,
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsEnum(CategoryBlock)
+  block?: CategoryBlock | null;
+
+  @ApiProperty({
+    description: 'ID de la categoría padre (si aplica)',
+    example: null,
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsUUID()
+  parent_id?: string | null;
 }

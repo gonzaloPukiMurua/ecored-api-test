@@ -99,7 +99,7 @@ export class ListingRepository {
     page = 1,
     limit = 10,
     order: 'ASC' | 'DESC' = 'ASC',
-  ): Promise<{ data: ListingResponseDto[]; total: number; page: number; limit: number }> {
+  ): Promise<{ data: Listing[]; total: number; page: number; limit: number }> {
     const qb = this.listingRepository
       .createQueryBuilder('listing')
       .leftJoinAndSelect('listing.owner', 'owner')
@@ -125,7 +125,7 @@ export class ListingRepository {
 
     const [listings, total] = await qb.getManyAndCount();
     return {
-      data: listings.map(l => this.mapToDto(l)!).filter(Boolean),
+      data: listings,
       total,
       page,
       limit,
