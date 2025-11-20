@@ -77,6 +77,7 @@ export class RequestController {
 
       const eventType = mapRequestStatusToEventType(status);
       console.log("Este es el status de la request: ", updatedRequest.status);
+      console.log("Esre es el id de la categoria del producto: ", updatedRequest.listing.category.category_id)
       if(updatedRequest.status === RequestStatus.COMPLETED){
         try {
             await this.ecopointsService.registerAction({

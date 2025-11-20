@@ -20,7 +20,13 @@ export class RequestRepository {
   async findById(id: string): Promise<Request | null | undefined> {
     return this.requestRepository.findOne({
       where: { request_id: id },
-      relations: ['listing', 'requester', 'publisher', 'delivery'],
+      relations: [
+        'listing',
+        'listing.category', 
+        'requester', 
+        'publisher', 
+        'delivery'
+      ],
     });
   }
 
@@ -49,7 +55,12 @@ export class RequestRepository {
       order: { created_at: order },
       skip: (page - 1) * limit,
       take: limit,
-      relations: ['listing', 'requester', 'delivery'],
+      relations: [
+        'listing',
+        'listing.category',
+        'requester', 
+        'delivery'
+      ],
     });
 
     return {
@@ -78,7 +89,13 @@ export class RequestRepository {
       order: { created_at: order },
       skip: (page - 1) * limit,
       take: limit,
-      relations: ['listing', 'requester', 'publisher', 'delivery'],
+      relations: [
+        'listing',
+        'listing.category', 
+        'requester', 
+        'publisher', 
+        'delivery'
+      ],
     });
 
     return { data, total, page, limit };
@@ -87,7 +104,12 @@ export class RequestRepository {
   async findByListingId(listingId: string): Promise<Request[]> {
     return this.requestRepository.find({
       where: { listing: { listing_id: listingId } },
-      relations: ['listing', 'requester', 'publisher'],
+      relations: [
+        'listing',
+        'listing.category', 
+        'requester', 
+        'publisher'
+      ],
     });
   }
 
